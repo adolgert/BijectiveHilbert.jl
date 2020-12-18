@@ -4,7 +4,7 @@
   zz = Set(Int64[])
   for x in 0:15
     for y in 0:15
-      z = BijectiveHilbert.encode_hilbert_zero(x, y)
+      z = encode_hilbert_zero(x, y)
       # @show (x, y, z)
       @test z ∉ zz
       @test 0 ≤ z < 256
