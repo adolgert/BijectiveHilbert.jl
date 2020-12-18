@@ -4,4 +4,4 @@ authors = ["Andrew Dolgert <adolgert@uw.edu>"]
 version = "0.1.0"
 
 [compat]
-julia = "1.5"
+julia = "1"

@@ -1,6 +1,7 @@
 using BijectiveHilbert
+using SafeTestsets
 using Test
 
 @testset "BijectiveHilbert.jl" begin
-    # Write your tests here.
+    include("test_hilbert.jl")
 end
