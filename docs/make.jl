@@ -18,5 +18,7 @@ makedocs(;
 )
 
 deploydocs(;
+    devbranch = "main",
     repo="github.com/adolgert/BijectiveHilbert.jl",
+    deploy_config=Documenter.GitHubActions()
 )
