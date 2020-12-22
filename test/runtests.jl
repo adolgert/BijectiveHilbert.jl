@@ -1,7 +1,6 @@
 using BijectiveHilbert
-using SafeTestsets
-using Test
+using Jute
 
-@testset "BijectiveHilbert.jl" begin
-    include("test_hilbert.jl")
-end
+include("test_hilbert.jl")
+
+runtests()

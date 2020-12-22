@@ -1,6 +1,7 @@
-@safetestset hilbert_encode_zero = "hilbert encode zero" begin
-  using BijectiveHilbert
+using Jute
+import Random: MersenneTwister, rand!
 
+@testcase "hilbert encode zero" begin
   zz = Set(Int64[])
   for x in 0:15
     for y in 0:15
@@ -13,9 +14,11 @@
   end
 end
 
+@testcase "gonna fail" begin
+@test false
+end
 
-@safetestset hilbert_decode_zero = "hilbert decode zero" begin
-  using BijectiveHilbert
+@testcase "hilbert decode zero" begin
   table2 = [
     15 12 11 10
     14 13  8  9
@@ -33,8 +36,7 @@ end
   end
 end
 
-@safetestset hilbert_all_seen = "hilbert all values seen" begin
-  using BijectiveHilbert
+@testcase "hilbert all values seen" begin
   xy = Set(Tuple{Int64, Int64}[])
   last = [-1, 0]
   for z in 0:255
@@ -54,8 +56,7 @@ end
 end
 
 
-@safetestset hilbert_bijective = "hilbert is bijective" begin
-  using BijectiveHilbert
+@testcase "hilbert is bijective" begin
   for z in 1:400
     x, y = decode_hilbert_zero(z)
     zz = encode_hilbert_zero(x, y)
@@ -64,10 +65,7 @@ end
 end
 
 
-@safetestset ordering = "hilbert order makes consecutive points near each other" begin
-  using BijectiveHilbert
-  import Random: MersenneTwister, rand!
-
+@testcase "hilbert order makes consecutive points near each other" begin
   point_to_point_distance(x) = sum(sqrt.(sum((x[:, 1:end-1] .- x[:, 2:end]).^2, dims = 1)))
   rng = MersenneTwister(984720987)
   points_in_space = zeros(2, 100)
