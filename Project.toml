@@ -5,3 +5,17 @@ version = "0.1.0"
 
 [compat]
 julia = "1"
+
+[extras]
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+Jute = "82bedeac-9837-5b62-883a-b5b3b7c811c5"
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+SourceWalk = "2987fe4f-acca-4bd1-87ee-98b3d562f1a1"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestReports = "dcd651b4-b50a-5b6b-8f22-87e9f253a252"
+Vimes = "85f4b15a-ac2e-11e8-1659-abc63ef75ab0"
+
+[targets]
+test = ["EzXML", "Jute", "MacroTools", "Random", "SafeTestsets", "SourceWalk", "TestReports", "Vimes", "Test"]
