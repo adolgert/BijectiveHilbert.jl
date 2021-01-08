@@ -1,8 +1,12 @@
+# Compact Hilbert Indices by Chris Hamilton. Technical Report CS-2006-07.
+# 6059 University Ave., Halifax, Nova Scotia, B3H 1W5, Canada.
+
 # binary reflected gray code
 brgc(i) = i ⊻ (i >> 1)
 for i in 1:10
     println(lpad(i, 3, " "), " ", lpad(string(brgc(i), base = 2), 8, "0"))
 end
+
 
 function log_base2(v::Integer)::Integer
     r = zero(v)
@@ -11,6 +15,7 @@ function log_base2(v::Integer)::Integer
     end
     r
 end
+
 
 function set_bits(v::Integer)
     c = zero(v)
@@ -28,7 +33,7 @@ for i in 1:100
     @assert(1<<m & i == 0)
 end
 
-function inv_brgc(g::Integer)
+function brgc_inv(g::Integer)
     i = g
     m = log_base2(g)
     for j = 1:m
@@ -38,15 +43,15 @@ function inv_brgc(g::Integer)
 end
 
 for i in 1:100
-    @assert(inv_brgc(brgc(i)) == i)
+    @assert(brgc_inv(brgc(i)) == i)
 end
 
 # He uses a function g(i) = trailing_set_bits.
-g(i) = set_bits(i) - 1
+hi_g(i) = set_bits(i) - 1
 
 # entry points
 # e = gc(2 * floor((i-1)/2))
-function e(i)
+function hi_e(i)
     i == zero(i) && return zero(i)
     brgc((i - one(i)) & ~one(i))
 end
@@ -55,23 +60,43 @@ for i = 1:20
 end
 # bitrotate(x, k_to_the_left)
 # page 12. directions
-function d(i, n)
+function hi_d(i, n)
     i == zero(i) && return zero(i)
-    i & 1 == 0 && return mod1(g(i - 1), n)
+    i & 1 == 0 && return mod1(hi_g(i - 1), n)
     mod1(g(i), n)
 end
 
 # exit points
-f(i) = e(i) ⊻ d(i)
+hi_f(i) = hi_e(i) ⊻ hi_d(i)
+hi_T(b, d, e) = bitrotate(b ⊻ e, -(d + 1))
+hi_T_inv(b, d, e) = T(b, n - d - 1, bitrotate(e, -(d + 1)))
 
-# page 14. stopping
-function hilbert_index(n, m, p)
-    h = zero(eltype(p))
-    e = zero(eltype(p))
-    d = zero(eltype(p))
-    for i = (m - 1):-1:0
-        for j = 1:n
-            l |= (p[j] & i) >> 
-        end
+function vector_bits(n, p, i)
+    l = zero(eltype(p))
+    for j = 1:n
+        l |= (p[j] & i) >> (i - j)
     end
+    l
+end
+
+
+"""
+    hilbert_index(n, m, p)
+
+Hilbert index for an `n`-dimensional vector `p`, with each
+component of extent less than 2^m.
+"""
+function hilbert_index(n, m, p)
+    h = zero(eltype(p))  # hilbert index
+    e = zero(eltype(p))  # entry point
+    d = zero(eltype(p))  # direction
+    for i = (m - 1):-1:0
+        l = vector_bits(n, p, i)
+        l = hi_T(l, d, e)
+        w = brgc_inv(l)
+        e = e ⊻ bitrotate(hi_e(w), d + 1)
+        d += mod1(hi_d(w) + 1, n)
+        h = min((h << n), w)
+    end
+    h
 end
