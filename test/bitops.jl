@@ -122,6 +122,30 @@ function bitrotate(x::Base.BitInteger, k::Integer, n::Integer)
     y
 end
 
+function rotateleft(x::Base.BitInteger, k::Integer, n::Integer)
+    y = zero(x)
+    for i = 0:(n - 1)
+        ind = (i - k) % n
+        ind = (ind >= 0) ? ind : ind + n
+        if (x & (one(x) << ind)) > 0
+            y |= (one(x) << i)
+        end  # else leave unset.
+    end
+    y
+end
+
+function rotateright(x::Base.BitInteger, k::Integer, n::Integer)
+    y = zero(x)
+    for i = 0:(n - 1)
+        ind = (i + k) % n
+        ind = (ind >= 0) ? ind : ind + n
+        if (x & (one(x) << ind)) > 0
+            y |= (one(x) << i)
+        end  # else leave unset.
+    end
+    y
+end
+
 for n = 3:3
     for k = -2n:2n
         for x = 0b0:(0b1<<n - 0b1)
@@ -149,5 +173,13 @@ n = 8
 for k = -3n:3n
     for x = 0b0:(0b1<<n - 0b1)
         @assert(bitrotate(x, k, n) == bitrotate(x, k))
+    end
+end
+
+n = 7
+for k in 0:n
+    for i in 0x1:(0x1<<n - 0x1)
+        j = bitrotate(bitrotate(i, k, n), -k, n)
+        @assert(j == i)
     end
 end

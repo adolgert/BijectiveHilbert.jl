@@ -129,10 +129,10 @@ hi_f(i, n) = hi_e(one(i)<<n - one(i) - i) ⊻ (one(i)<<(n-1))
 # T_{(e,d)}(b), so read right-to-left.
 # The paper means to bit rotate over the n bits that are in use,
 # not all n bits. This is not the usual bitrotate!
-hi_T(b, d, e, n) = bitrotate(b ⊻ e, -d - one(b), n)
+hi_T(b, d, e, n) = rotateright(b ⊻ e, d + one(d), n)
 
 # From https://github.com/pdebuyl/libhilbert/blob/master/include/Hilbert/Algorithm.hpp
-hi_T_inv(b, d, e, n) = bitrotate(b, d + one(b), n) ⊻ e
+hi_T_inv(b, d, e, n) = rotateleft(b, d + one(d), n) ⊻ e
 
 # Lemma 2.12, page 15.
 # Is it -2 or -1?
@@ -185,14 +185,12 @@ for i = 0b1:(0b1<<(n - 1))
 end
 
 # Check that the inverse of T is an inverse.
-n = 0x3
+n = 3
 for i = 0x0:(0x1<<n - 0x1)
     for b = 0x0:(0x1<<n - 0x1)
         @assert(typeof(i) == UInt8)
-        d = hi_d(i, n)
-        @assert(typeof(d) == UInt8)
-        e = hi_e(i)
-        @assert(typeof(e) == UInt8)
+        d = UInt8(hi_d(i, n))
+        e = UInt8(hi_e(i))
         a = hi_T(b, d, e, n)
         b1 = hi_T_inv(a, d, e, n)
         println(join(string.(typeof.((i, b, a, b1))), " "))
