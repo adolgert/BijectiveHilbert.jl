@@ -66,7 +66,7 @@ end
 Rotate bits around an n-bit window. This extends bitrotate,
 which operates on the number of bits in a type.
 """
-function bitrotate(x::Base.BitInteger, k::Integer, n::Integer)
+function bitrotate_a(x::Base.BitInteger, k::Integer, n::Integer)
     k == 0 && return x
     k = k % n
     if k > 0
@@ -99,8 +99,55 @@ tries = [
 ]
 for (try_idx, trial) in enumerate(tries)
     x, y, k, n = trial
+    y1 = bitrotate_a(x, k, n)
+    if y != y1
+        println("k ", k, " n ", n, " ", bitstring(y), " ", bitstring(y1))
+    end
+end
+
+
+"""
+For a right rotation (-k)
+Given [b_{n-1}...b_0] return [b_{n-1+i%n}...b_{i%n}]
+"""
+function bitrotate(x::Base.BitInteger, k::Integer, n::Integer)
+    y = zero(x)
+    for i = 0:(n - 1)
+        ind = (i - k) % n
+        ind = (ind >= 0) ? ind : ind + n
+        if (x & (one(x) << ind)) > 0
+            y |= (one(x) << i)
+        end  # else leave unset.
+    end
+    y
+end
+
+for n = 3:3
+    for k = -2n:2n
+        for x = 0b0:(0b1<<n - 0b1)
+            @assert(typeof(x) == UInt8)
+            bd = bitstring(bitrotate(x, k, n))
+            b = bitstring(bitrotate_a(x, k, n))
+            bx = bitstring(x)
+            if b != bd
+                @show k, n, bx, b, bd
+            end
+        end
+    end
+end
+
+for (try_idx, trial) in enumerate(tries)
+    x, y, k, n = trial
     y1 = bitrotate(x, k, n)
     if y != y1
         println("k ", k, " n ", n, " ", bitstring(y), " ", bitstring(y1))
+    end
+end
+
+# It agrees with the 8-bit version when n=8.
+n = 8
+for k = -3n:3n
+    for x = 0b0:(0b1<<n - 0b1)
+        @assert(bitrotate(x, k, n) == bitrotate(x, k))
     end
 end
