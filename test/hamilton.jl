@@ -199,12 +199,44 @@ for i = 0x0:(0x1<<n - 0x1)
     end
 end
 
-function vector_bits(n, p, i)
+"""
+    ith_bit_of_indices(n, p, i)
+
+Given `n` indices in `p`, take the `i`-th bit of each one
+and place it so that the first vector's value is at the
+0-th place, the second vector's value at the 1st place, and so-on.
+`i` is zero-indexed.
+"""
+function ith_bit_of_indices(n, p, i)
     l = zero(eltype(p))
     for j = 1:n
-        l |= (p[j] & i) >> (i - j)
+        l |= (p[j] & (one(eltype(p))<<i)) >> (i - j + one(eltype(p)))
     end
     l
+end
+
+v = [0b100, 0b010, 0b110]
+trials = [
+    [0, "00000000"],
+    [1, "00000110"],
+    [2, "00000101"],
+    [3, "00000000"]
+]
+for (idx, t0) in trials
+    @assert bitstring(ith_bit_of_indices(3, v, idx)) == t0
+end
+
+
+"""
+Return `m` bits from the `i`-th set of `m` bits
+in the integer `h`. `i` is zero-based.
+"""
+function bitrange(h, n, i)
+    v = zero(h)
+    for j in 0:(n - 1)
+        v = v | (h & (1<<(i*n + j)))
+    end
+    v
 end
 
 
@@ -218,13 +250,44 @@ function hilbert_index(n, m, p)
     h = zero(eltype(p))  # hilbert index
     e = zero(eltype(p))  # entry point
     d = zero(eltype(p))  # direction
-    for i = (m - 1):-1:0
-        l = vector_bits(n, p, i)
-        l = hi_T(l, d, e)
+    for i = (m - 1):-1:0  # i is an index. Can be any type.
+        l = ith_bit_of_indices(n, p, i)
+        # @show l
+        l = hi_T(l, d, e, n)  # n or m?
         w = brgc_inv(l)
-        e = e ⊻ bitrotate(hi_e(w), d + 1)
-        d += mod1(hi_d(w) + 1, n)
-        h = min((h << n), w)
+        e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
+        d += mod1(hi_d(w, n) + one(d), n)  # n or m for hi_d?
+        h = (h << n) | w
     end
     h
+end
+
+m = 0x3
+seen = Set{UInt8}()
+for i in 0:(1<<m - 1)
+    for j in 0:(1<<m - 1)
+        h = hilbert_index(0x2, m, UInt8[i, j])
+        println(bitstring(h))
+        push!(seen, h)
+        @assert h >= 0
+        @assert h < 1<<(2m)
+    end
+end
+@assert(length(seen) == 1<<(2m))
+
+function hilbert_index_inv(n, m, h)
+    e = zero(h)  # entry point
+    d = zero(h)  # direction
+    p = zeros(typeof(h), m)
+    for i = (m - 1):-1:0  # i is an index. Can be any type.
+        w = bitrange(h, n, i)
+        l = brgc(w)
+        l = hi_T_inv(l, d, e, n)
+        for j in 0:(m - 1)
+            p[j + 1] = p[j + 1] | ((l & (1<<j)) >> j)
+        end
+        e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
+        d += mod1(hi_d(w, n) + one(d), n)  # n or m for hi_d?
+    end
+    p
 end
