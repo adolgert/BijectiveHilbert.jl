@@ -3,5 +3,8 @@ uuid = "91e7fc40-53cd-4118-bd19-d7fcd1de2a54"
 authors = ["Andrew Dolgert <adolgert@uw.edu>"]
 version = "0.1.0"
 
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
 julia = "1"

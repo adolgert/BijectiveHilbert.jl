@@ -29,6 +29,9 @@ hi_g(i) = trailing_set_bits(i)
 # This is the definition of g, to compare against for testing.
 hi_g_orig(i) = floor(typeof(i), log2(brgc(i) ⊻ brgc(i + 1)))
 
+
+# e is the entry vertex of the ith sub-hypercube in a Gray code
+# ordering of sub-hypercubes.
 # entry points. pg. 13 bottom.
 # e = gc(2⌊(i-1)/2⌋) = gc(2*floor((i-1)/2)).
 # domain is i=0 to i=2^n - 1.
@@ -45,6 +48,17 @@ end
 
 
 """
+f is the exit vertex of the ith sub-hypercube in a Gray code
+ordering of the sub-hypercubes.
+Corllary 2.7 on pg. 12 says:
+    hi_f(i, n) = hi_e(i) ⊻ hi_d(i, n)
+"""
+hi_f(i, n) = hi_e(one(i)<<n - one(i) - i) ⊻ (one(i)<<(n-1))
+# hi_f(i, n) = hi_e(i) ⊻ hi_d(i, n)
+#hi_f(i, n) = hi_e(i) ⊻ (one(i)<<hi_d(i, n))
+
+
+"""
 page 12. directions
 d(i) = 0 if i=0
     = g(i-1) mod n if i=0 mod 2
@@ -53,19 +67,10 @@ Domain is 0 <= i <= 2^n - 1.
 """
 function hi_d(i, n)
     i == zero(i) && return zero(i)
-    i & 1 == 0 && return mod1(hi_g(i - one(i)), n)
-    mod1(hi_g(i), n)
+    ((i & 1) == 0) && return hi_g(i - one(i)) % n
+    hi_g(i) % n
 end
 
-
-"""
-exit points
-Corllary 2.7 on pg. 12 says:
-    hi_f(i, n) = hi_e(i) ⊻ hi_d(i, n)
-"""
-hi_f(i, n) = hi_e(one(i)<<n - one(i) - i) ⊻ (one(i)<<(n-1))
-# hi_f(i, n) = hi_e(i) ⊻ hi_d(i, n)
-#hi_f(i, n) = hi_e(i) ⊻ (one(i)<<hi_d(i, n))
 
 # bitrotate is a left shift, so negate d+1.
 # T_{(e,d)}(b), so read right-to-left.
@@ -145,7 +150,7 @@ function hilbert_index_paper(n, m, p)
         w = brgc_inv(t)
         h = (h << n) | w
         e = e ⊻ rotateleft(hi_e(w), d, n)
-        d = mod1(d + hi_d(w, n) + one(d), n)  # n or m for hi_d?
+        d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
     end
     h
 end
@@ -163,7 +168,7 @@ function hilbert_index(n, m, p, d = zero(eltype(p)))
         w = brgc_inv(l)
         h = (h << n) | w
         e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
-        d = mod1(d + hi_d(w, n) + one(d), n)  # n or m for hi_d?
+        d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
     end
     h
 end
@@ -179,7 +184,7 @@ function hilbert_index_inv(n, m, h)
         l = hi_T_inv(l, d, e, n)
         set_indices_bits!(p, l, m, i)
         e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
-        d = mod1(d + hi_d(w, n) + one(d), n)  # n or m for hi_d?
+        d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
     end
     p
 end

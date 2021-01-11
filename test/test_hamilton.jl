@@ -9,21 +9,44 @@ for i in 0:(1 << n - 1)
     # println(BijectiveHilbert.brgc(1<<n - 1 - i), " ", BijectiveHilbert.brgc(i) ⊻ (1 << (n-1)))
     @test(BijectiveHilbert.brgc(1<<n - 1 - i) == BijectiveHilbert.brgc(i) ⊻ (1 << (n - 1)))
 end
+end
 
+@safetestset gray_code_single = "Gray code changes one bit" begin
+using BijectiveHilbert: brgc, is_power_of_two
+for i in 1:1000
+    @test is_power_of_two(brgc(i) ⊻ brgc(i + 1))
+end
 end
 
 
 @safetestset brgc_own_inverse = "Gray code is own inverse" begin
 using BijectiveHilbert
-for i in 1:100
+for i in 0:1000
     @test(BijectiveHilbert.brgc_inv(BijectiveHilbert.brgc(i)) == i)
+end
+end
+
+
+@safetestset hi_g_definition = "g is the direction of gray code" begin
+using BijectiveHilbert: brgc, hi_g
+for i in 0:1000
+    @test brgc(i) ⊻ brgc(i + 1) == 1<<hi_g(i)
+end
+end
+
+
+@safetestset binary_reflection_of_gc = "gray code is binary reflected" begin
+using BijectiveHilbert: brgc
+n = 10
+for i in 0:(1<<n - 1)
+    @test brgc(1<<n - 1 - i) == brgc(i) ⊻ 1<<(n-1)
 end
 end
 
 
 @safetestset hi_g_matches_long_form = "hi_g is the same as its definition" begin
 using BijectiveHilbert: hi_g, hi_g_orig
-for i = 1:100
+for i = 0:100
     @test hi_g(i) == hi_g_orig(i)
 end
 end
@@ -47,6 +70,26 @@ n = 5
 for i in 0:(1<<n - 2)
     # println(hi_g(i), " ", hi_g(1<<n - 2 - i))
     @test(hi_g(i) == hi_g(1<<n - 2 - i))
+end
+end
+
+
+@safetestset efdg_match_table = "directions match figure 5 in hamilton report" begin
+using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
+n = 2
+trials = [
+    [0, 0, 1, 0, 0],
+    [1, 0, 2, 1, 1],
+    [2, 0, 2, 1, 0],
+    [3, 3, 2, 0, 42]
+]
+for (i, e, f, d, g) in trials
+    @test hi_e(i) == e
+    @test hi_f(i, n) == f
+    @test hi_d(i, n) == d
+    if g != 42
+        @test hi_g(i) == g
+    end
 end
 end
 

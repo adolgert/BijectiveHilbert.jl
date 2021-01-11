@@ -1,5 +1,17 @@
 bshow(i) = bitstring(i)[end-7:end]
 
+
+"""
+    is_power_of_two(v::Base.BitInteger)
+
+This integer is a power of two.
+"""
+function is_power_of_two(v::Base.BitInteger)
+    v != 0 && ((v & (v - 1)) == 0)
+end
+
+
+
 """
     log_base2(v::Integer)
 
