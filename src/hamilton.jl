@@ -132,20 +132,38 @@ end
     hilbert_index(n, m, p)
 
 Hilbert index for an `n`-dimensional vector `p`, with each
-component of extent less than 2^m.
+component of extent less than 2^m. Algorithm 1 of Hamilton and
+Rau-Chaplin.
 """
-function hilbert_index(n, m, p)
+function hilbert_index_paper(n, m, p)
     h = zero(eltype(p))  # hilbert index
     e = zero(eltype(p))  # entry point
     d = zero(eltype(p))  # direction
     for i = (m - 1):-1:0  # i is an index. Can be any type.
         l = ith_bit_of_indices(n, p, i)
+        t = rotateright(l ⊻ e, d, n)
+        w = brgc_inv(t)
+        h = (h << n) | w
+        e = e ⊻ rotateleft(hi_e(w), d, n)
+        d = mod1(d + hi_d(w, n) + one(d), n)  # n or m for hi_d?
+    end
+    h
+end
+
+
+# Make d an argument because it determines the initial direction and maybe
+# it isn't initialized correctly. Maybe d and e need different initial values.
+function hilbert_index(n, m, p, d = zero(eltype(p)))
+    h = zero(eltype(p))  # hilbert index
+    e = zero(eltype(p))  # entry point
+    for i = (m - 1):-1:0  # i is an index. Can be any type.
+        l = ith_bit_of_indices(n, p, i)
         # @show l
         l = hi_T(l, d, e, n)  # n or m?
         w = brgc_inv(l)
-        e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
-        d += mod1(hi_d(w, n) + one(d), n)  # n or m for hi_d?
         h = (h << n) | w
+        e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
+        d = mod1(d + hi_d(w, n) + one(d), n)  # n or m for hi_d?
     end
     h
 end
@@ -161,7 +179,7 @@ function hilbert_index_inv(n, m, h)
         l = hi_T_inv(l, d, e, n)
         set_indices_bits!(p, l, m, i)
         e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
-        d += mod1(hi_d(w, n) + one(d), n)  # n or m for hi_d?
+        d = mod1(d + hi_d(w, n) + one(d), n)  # n or m for hi_d?
     end
     p
 end

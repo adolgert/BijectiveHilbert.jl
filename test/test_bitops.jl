@@ -2,7 +2,7 @@
 using BijectiveHilbert
 for i in 1:100
     m = BijectiveHilbert.log_base2(i) + 1
-    println(i, " ", string(i, base = 2), " ", m, " ", ceil(Int, log(2, i)))
+    # println(i, " ", string(i, base = 2), " ", m, " ", ceil(Int, log(2, i)))
     @test((1<<(m - 1)) & i != 0)
     @test(1<<m & i == 0)
 end

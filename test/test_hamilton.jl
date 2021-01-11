@@ -1,12 +1,12 @@
 @safetestset gray_code_symmetry = "Gray code symmetry" begin
 using BijectiveHilbert
-for i in 0:10
-    println(lpad(i, 3, " "), " ", lpad(string(BijectiveHilbert.brgc(i), base = 2), 8, "0"))
-end
+# for i in 0:10
+#     println(lpad(i, 3, " "), " ", lpad(string(BijectiveHilbert.brgc(i), base = 2), 8, "0"))
+# end
 # Here's a test of the gray code.
 n = 5
 for i in 0:(1 << n - 1)
-    println(BijectiveHilbert.brgc(1<<n - 1 - i), " ", BijectiveHilbert.brgc(i) ⊻ (1 << (n-1)))
+    # println(BijectiveHilbert.brgc(1<<n - 1 - i), " ", BijectiveHilbert.brgc(i) ⊻ (1 << (n-1)))
     @test(BijectiveHilbert.brgc(1<<n - 1 - i) == BijectiveHilbert.brgc(i) ⊻ (1 << (n - 1)))
 end
 
@@ -45,7 +45,7 @@ using BijectiveHilbert: brgc, hi_g, bshow
 # Test for the hi_g function.
 n = 5
 for i in 0:(1<<n - 2)
-    println(hi_g(i), " ", hi_g(1<<n - 2 - i))
+    # println(hi_g(i), " ", hi_g(1<<n - 2 - i))
     @test(hi_g(i) == hi_g(1<<n - 2 - i))
 end
 end
@@ -138,7 +138,7 @@ using BijectiveHilbert: hi_T, hi_e, hi_d
 # Assert T_{e,d}(e) == 0
 n = 3
 for i = 0:(1<<n - 1)
-    println(hi_T(hi_e(i), hi_d(i, n), hi_e(i), n))
+    # println(hi_T(hi_e(i), hi_d(i, n), hi_e(i), n))
     @test(0 == hi_T(hi_e(i), hi_d(i, n), hi_e(i), n))
 end
 end
@@ -154,7 +154,7 @@ for i = 0x0:(0x1<<n - 0x2)
     d = hi_d(i, n)
     e = hi_e(i)
     v = hi_T(f, d, e, n)
-    println(bitstring(v), " ", v)
+    # println(bitstring(v), " ", v)
     @test(0x1<<(n-1) == hi_T(hi_f(i, n), hi_d(i, n), hi_e(i), n))
 end
 end
@@ -232,14 +232,14 @@ end
 
 
 @safetestset hilbert_index_complete2d = "hilbert index is a complete set for 2d" begin
-using BijectiveHilbert: hilbert_index
+using BijectiveHilbert: hilbert_index, hilbert_index_paper
 
 m = 0x4  # One larger won't fit into a byte and must fail.
 seen = Dict{UInt8,Tuple{UInt8,UInt8}}()
 for i in 0:(1<<m - 1)
     for j in 0:(1<<m - 1)
         h = hilbert_index(0x2, m, UInt8[i, j])
-        println(bitstring(h))
+        # println(bitstring(h))
         seen[h] = (i, j)
         # assert that hilbert indices are within the range.
         @test h >= 0
@@ -261,14 +261,14 @@ end
 
 
 @safetestset hilbert_index_complete4d = "hilbert index is a complete set for 4d" begin
-using BijectiveHilbert: hilbert_index
+using BijectiveHilbert: hilbert_index, hilbert_index_paper
 # Try a 4d hilbert curve.
 dim_cnt = 4
 m = 3
 indices = Base.IteratorsMD.CartesianIndices(tuple(collect(1<<m for i in 1:dim_cnt)...))
 seen2 = Dict{Int64, NTuple{dim_cnt,Int64}}()
 for idx in indices
-    h = hilbert_index(dim_cnt, m, Tuple(idx))
+    h = hilbert_index(dim_cnt, m, Tuple(idx), 4)
     seen2[h] = Tuple(idx)
     @test h >= 0
     @test h < 1<<(dim_cnt * m)
@@ -284,6 +284,24 @@ for hidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
     if dx != 1
         @test dx == 1
         break
+    end
+end
+end
+
+
+@safetestset hilbert_index_paper_tr = "paper and techreport agree" begin
+using BijectiveHilbert: hilbert_index, hilbert_index_paper
+
+m = 0x4  # One larger won't fit into a byte and must fail.
+for i in 0:(1<<m - 1)
+    for j in 0:(1<<m - 1)
+        h_tr = hilbert_index(0x2, m, UInt8[i, j])
+        h_p = hilbert_index_paper(0x2, m, UInt8[i, j])
+        @test typeof(h_tr) == typeof(h_p)
+        @test h_p == h_tr
+        if h_p != h_tr
+            break
+        end
     end
 end
 end
