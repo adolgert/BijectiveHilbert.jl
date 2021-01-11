@@ -3,5 +3,7 @@ using SafeTestsets
 using Test
 
 @testset "BijectiveHilbert.jl" begin
-    include("test_hilbert.jl")
+include("test_bitops.jl")
+include("test_hilbert.jl")
+include("test_hamilton.jl")
 end
