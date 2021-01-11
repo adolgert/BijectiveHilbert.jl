@@ -24,7 +24,6 @@ end
 
 
 # hi_g(i) is the direction in which brgc changes.
-# He uses a function g(i) = trailing_set_bits.
 hi_g(i) = trailing_set_bits(i)
 # This is the definition of g, to compare against for testing.
 hi_g_orig(i) = floor(typeof(i), log2(brgc(i) ⊻ brgc(i + 1)))

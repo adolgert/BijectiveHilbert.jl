@@ -31,6 +31,7 @@ end
 using BijectiveHilbert: brgc, hi_g
 for i in 0:1000
     @test brgc(i) ⊻ brgc(i + 1) == 1<<hi_g(i)
+    @test brgc(i) == brgc(i + 1) ⊻ 1<<hi_g(i)  # xor. It's how it works.
 end
 end
 
@@ -141,10 +142,10 @@ for n = 2:5
             @test d == 0
         elseif i % 2 == 0
             g = hi_g(i - 1)
-            @test d == g
+            @test d == (g % n)
         else
             g = hi_g(i)
-            @test d == g
+            @test d == (g % n)
         end
     end
 end
@@ -155,11 +156,20 @@ end
 using BijectiveHilbert: hi_d, hi_e, hi_g
 # invariant for e, d, and g. pg. 11. Eq. 1.
 n = 5
-for i = 0:(1<<n - 1)
+for i = 0:(1<<n - 2)
     @test(hi_e(i + 1) == hi_e(i) ⊻ (1 << hi_d(i, n)) ⊻ (1 << hi_g(i)))
 end
 end
 
+
+@safetestset hi_edg_invariant_n1 = "hi e, d, g invariant at n-1" begin
+using BijectiveHilbert: hi_d, hi_e, hi_g
+# invariant for e, d, and g. pg. 11. Eq. 1.
+# Should this work? The text says it should work.
+n = 5
+i = 1<<n - 1
+@test(hi_e(i + 1) == hi_e(i) ⊻ (1 << hi_d(i, n)) ⊻ (1 << hi_g(i)))
+end
 
 @safetestset hi_e_reflection = "hi_e reflects to f" begin
 using BijectiveHilbert: hi_e, hi_d, hi_f
@@ -170,6 +180,7 @@ for i = 0:(1<<n - 1)
     d = hi_d(i, n)
     f = hi_f(i, n)
     # Corollary 2.7, pg 12, states that e ⊻ d = f, but that's not true.
+    # Page 11, first paragraph, says e(i) \xor f(i) = 2^d(i). That's this.
     @test e ⊻ (1<<d) == f
 end
 end
