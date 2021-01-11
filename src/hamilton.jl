@@ -26,6 +26,7 @@ end
 # hi_g(i) is the direction in which brgc changes.
 # He uses a function g(i) = trailing_set_bits.
 hi_g(i) = trailing_set_bits(i)
+# This is the definition of g, to compare against for testing.
 hi_g_orig(i) = floor(typeof(i), log2(brgc(i) ⊻ brgc(i + 1)))
 
 # entry points. pg. 13 bottom.
@@ -36,6 +37,7 @@ function hi_e(i::Integer)
     brgc((i - one(i)) & ~one(i))
 end
 
+# This is verbatim from the article, for comparison.
 function hi_e_orig(i::Base.BitInteger)
     i == zero(i) && return zero(i)
     brgc(2 * floor(typeof(i), (i - 1) / 2))
@@ -47,6 +49,7 @@ page 12. directions
 d(i) = 0 if i=0
     = g(i-1) mod n if i=0 mod 2
     = g(i) mod n if i=1 mod 2.
+Domain is 0 <= i <= 2^n - 1.
 """
 function hi_d(i, n)
     i == zero(i) && return zero(i)
@@ -70,7 +73,8 @@ hi_f(i, n) = hi_e(one(i)<<n - one(i) - i) ⊻ (one(i)<<(n-1))
 # not all n bits. This is not the usual bitrotate!
 hi_T(b, d, e, n) = rotateright(b ⊻ e, d + one(d), n)
 
-# From https://github.com/pdebuyl/libhilbert/blob/master/include/Hilbert/Algorithm.hpp
+# The author's code differs with his paper. It doesn't add one.
+# https://github.com/pdebuyl/libhilbert/blob/master/include/Hilbert/Algorithm.hpp
 hi_T_inv(b, d, e, n) = rotateleft(b, d + one(d), n) ⊻ e
 
 # Lemma 2.12, page 15.
@@ -94,6 +98,20 @@ function ith_bit_of_indices(n, p, i)
         l |= (p[j] & (one(eltype(p))<<i)) >> (i - j + one(eltype(p)))
     end
     l
+end
+
+
+"""
+    set_indices_bits(p, l, m, i)
+
+Given bits in `l`, set each index in the array `p` according
+to the bit in `l`. Set the i-th bit of each index in `p`.
+"""
+function set_indices_bits!(p, l, m, i)
+    for j in 0:(m - 1)
+        v = (l & (1<<j)) >>j
+        p[j + 1] = p[j + 1] | (v<<i)
+    end
 end
 
 
@@ -141,9 +159,7 @@ function hilbert_index_inv(n, m, h)
         w = bitrange(h, n, i)
         l = brgc(w)
         l = hi_T_inv(l, d, e, n)
-        for j in 0:(m - 1)
-            p[j + 1] = p[j + 1] | ((l & (1<<j)) >> j)
-        end
+        set_indices_bits!(p, l, m, i)
         e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
         d += mod1(hi_d(w, n) + one(d), n)  # n or m for hi_d?
     end

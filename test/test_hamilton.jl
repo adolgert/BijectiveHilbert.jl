@@ -20,6 +20,7 @@ for i in 1:100
 end
 end
 
+
 @safetestset hi_g_matches_long_form = "hi_g is the same as its definition" begin
 using BijectiveHilbert: hi_g, hi_g_orig
 for i = 1:100
@@ -27,18 +28,19 @@ for i = 1:100
 end
 end
 
+
 @safetestset hi_g_symmetry = "hi_g symmetry invariant" begin
 using BijectiveHilbert: brgc, hi_g, bshow
-n = 3
-for i in 0:(1<<n)
-    println(
-        bshow(brgc(i)), " ",
-        bshow(brgc(i + 1)), " ",
-        bshow(brgc(i) ⊻ brgc(i + 1)), " ",
-        bshow(1<<hi_g(i)), " ",
-        bshow(i)
-    )
-end
+# n = 3
+# for i in 0:(1<<n)
+#     println(
+#         bshow(brgc(i)), " ",
+#         bshow(brgc(i + 1)), " ",
+#         bshow(brgc(i) ⊻ brgc(i + 1)), " ",
+#         bshow(1<<hi_g(i)), " ",
+#         bshow(i)
+#     )
+# end
 
 # Test for the hi_g function.
 n = 5
@@ -58,29 +60,74 @@ end
 end
 
 
-@safetestset hi_d_symmetry_invariant = "hi_d symmetry invariant works" begin
+@safetestset hi_d_symmetry_invariant = "hi_d symmetry invariant works corollary 2.7" begin
 using BijectiveHilbert: hi_d, bshow
-n = 3
-for i = 0:(1<<n)
-    println(i, " ", bshow(hi_d(i, n)))
-end
+# n = 3
+# for i = 0:(1<<n)
+#     println(i, " ", bshow(hi_d(i, n)))
+# end
 
-# invariant for d on page 12
+# invariant for d on page 12. Corollary 2.7.
 # Does not hold true for i=0 and i=1<<n - 1.
 n = 5
-for i = 1:(1<<n - 2)
-    println(hi_d(i, n), " ", hi_d((1<<n)-1-i, n))
-    @test(hi_d(i, n) == hi_d((1<<n) - 1 - i, n))
+for i = 0:(1<<n - 1)
+    #println(hi_d(i, n), " ", hi_d((1<<n)-1-i, n))
+    d = hi_d(i, n)
+    dflip = hi_d((1<<n) - 1 - i, n)
+    @test(d == dflip)
+end
+end
+
+
+@safetestset hi_d_compare_g = "hi_d equals hi_g at 2n-1 lemma 2.8" begin
+using BijectiveHilbert: hi_d, hi_g
+for n = 1:5
+    d = hi_d(1<<n - 1, n)
+    g = hi_g(1<<n - 1)
+    @test d == g
+end
+end
+
+
+@safetestset hi_d_compares_with_g = "hi_d equals g for mod 2" begin
+using BijectiveHilbert: hi_d, hi_g
+for n = 2:5
+    for i = 0:(1<<n - 1)
+        d = hi_d(i, n)
+        if i == 0
+            @test d == 0
+        elseif i % 2 == 0
+            g = hi_g(i - 1)
+            @test d == g
+        else
+            g = hi_g(i)
+            @test d == g
+        end
+    end
 end
 end
 
 
 @safetestset hi_edg_invariant = "hi e, d, g invariant is consistent" begin
 using BijectiveHilbert: hi_d, hi_e, hi_g
-# invariant for e, d, and g. pg. 11.
+# invariant for e, d, and g. pg. 11. Eq. 1.
 n = 5
-for i = 0:(1<<n)
+for i = 0:(1<<n - 1)
     @test(hi_e(i + 1) == hi_e(i) ⊻ (1 << hi_d(i, n)) ⊻ (1 << hi_g(i)))
+end
+end
+
+
+@safetestset hi_e_reflection = "hi_e reflects to f" begin
+using BijectiveHilbert: hi_e, hi_d, hi_f
+n = 5
+# XXX doesn't hold for 0
+for i = 0:(1<<n - 1)
+    e = hi_e(i)
+    d = hi_d(i, n)
+    f = hi_f(i, n)
+    # Corollary 2.7, pg 12, states that e ⊻ d = f, but that's not true.
+    @test e ⊻ (1<<d) == f
 end
 end
 
@@ -137,7 +184,7 @@ n = 5
 for i = 0b1:(0b1<<(n - 1))
     e = hi_e(i)
     ff = hi_f((0b1<<n) - 0b1 - i, n) ⊻ (0b1<<(n-1))
-    println(e, " ", ff)
+    # println(e, " ", ff)
     @test(e == ff)
     @test typeof(e) == UInt8
     @test typeof(ff) == UInt8
@@ -156,8 +203,8 @@ for i = 0x0:(0x1<<n - 0x1)
         e = UInt8(hi_e(i))
         a = hi_T(b, d, e, n)
         b1 = hi_T_inv(a, d, e, n)
-        println(join(string.(typeof.((i, b, a, b1))), " "))
-        println("b ", bitstring(b), " a ", bitstring(a), " b1 ", bitstring(b1))
+        # println(join(string.(typeof.((i, b, a, b1))), " "))
+        # println("b ", bitstring(b), " a ", bitstring(a), " b1 ", bitstring(b1))
         @test(b == b1)
     end
 end
@@ -167,12 +214,16 @@ end
 @safetestset get_ith_bit_trials = "trials show can get ith bit of vectors" begin
 using BijectiveHilbert: ith_bit_of_indices
 
-v = [0b100, 0b010, 0b110]
+v = [0b01110100, 0b01101010, 0b01011001]
 trials = [
-    [0, "00000000"],
-    [1, "00000110"],
-    [2, "00000101"],
-    [3, "00000000"]
+    [0, "00000100"],
+    [1, "00000010"],
+    [2, "00000001"],
+    [3, "00000110"],
+    [4, "00000101"],
+    [5, "00000011"],
+    [6, "00000111"],
+    [7, "00000000"]
 ]
 for (idx, t0) in trials
     @test bitstring(ith_bit_of_indices(3, v, idx)) == t0
@@ -231,8 +282,19 @@ for hidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
     b = collect(seen2[hidx + 1])[choose]
     dx = (a > b) ? a - b : b - a
     if dx != 1
-        # @test dx == 1
+        @test dx == 1
         break
     end
 end
+end
+
+
+@safetestset correct_bits_set_in_indices = "indices bits match" begin
+using BijectiveHilbert: set_indices_bits!
+m = 3
+i = 4
+l = 0b110
+p = zeros(Int, 3)
+set_indices_bits!(p, l, m, i)
+@test p == [0, 1<<i, 1<<i]
 end
