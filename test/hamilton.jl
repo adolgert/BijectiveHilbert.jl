@@ -262,18 +262,53 @@ function hilbert_index(n, m, p)
     h
 end
 
-m = 0x3
-seen = Set{UInt8}()
+m = 0x4  # One larger won't fit into a byte and must fail.
+seen = Dict{UInt8,Tuple{UInt8,UInt8}}()
 for i in 0:(1<<m - 1)
     for j in 0:(1<<m - 1)
         h = hilbert_index(0x2, m, UInt8[i, j])
         println(bitstring(h))
-        push!(seen, h)
+        seen[h] = (i, j)
+        # assert that hilbert indices are within the range.
         @assert h >= 0
         @assert h < 1<<(2m)
     end
 end
+# Assert that every unique value is seen.
 @assert(length(seen) == 1<<(2m))
+x0, y0 = seen[0x0]
+for hidx in 0x1:(0x1<<2m - 0x1)
+    x1, y1 = seen[hidx]
+    dx = (x1 > x0) ? x1 - x0 : x0 - x1  # because unsigned
+    dy = (y1 > y0) ? y1 - y0 : y0 - y1
+    # Assert that each x,y is one step away from previous value.
+    @assert(dx == 0x1 || dy == 0x1)
+    x0, y0 = (x1, y1)
+end
+
+# Try a 4d hilbert curve.
+dim_cnt = 4
+m = 3
+indices = Base.IteratorsMD.CartesianIndices(tuple(collect(1<<m for i in 1:dim_cnt)...))
+seen2 = Dict{Int64, NTuple{dim_cnt,Int64}}()
+for idx in indices
+    h = hilbert_index(dim_cnt, m, Tuple(idx))
+    seen2[h] = Tuple(idx)
+    @assert h >= 0
+    @assert h < 1<<(dim_cnt * m)
+end
+@assert(length(seen2) == 1<<(dim_cnt * m))
+for hidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
+    differ = seen2[hidx] .!= seen2[hidx + 1]
+    @assert(sum(differ) == 1)
+    choose = [x for x in 1:dim_cnt if differ[x]]
+    a = collect(seen2[hidx])[choose]
+    b = collect(seen2[hidx + 1])[choose]
+    dx = (a > b) ? a - b : b - a
+    @assert(dx == 1)
+end
+
+
 
 function hilbert_index_inv(n, m, h)
     e = zero(h)  # entry point
