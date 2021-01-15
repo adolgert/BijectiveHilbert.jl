@@ -24,14 +24,16 @@ end
 
 
 # hi_g(i) is the direction in which brgc changes.
+# It is also tells us the axis along which the exit of one
+# subcube meets the entrance of the next subcube.
 hi_g(i) = trailing_set_bits(i)
 # This is the definition of g, to compare against for testing.
 hi_g_orig(i) = floor(typeof(i), log2(brgc(i) ⊻ brgc(i + 1)))
 
 
 # e is the entry vertex of the ith sub-hypercube in a Gray code
-# ordering of sub-hypercubes.
-# entry points. pg. 13 bottom.
+# ordering of sub-hypercubes. If e is 0b011, then this is z-y-x
+# within the subcube of 0 in the z, 1 in the y, 1 in the x.
 # e = gc(2⌊(i-1)/2⌋) = gc(2*floor((i-1)/2)).
 # domain is i=0 to i=2^n - 1.
 function hi_e(i::Integer)

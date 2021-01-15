@@ -79,18 +79,62 @@ end
 using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
 n = 2
 trials = [
-    [0, 0, 1, 0, 0],
-    [1, 0, 2, 1, 1],
-    [2, 0, 2, 1, 0],
-    [3, 3, 2, 0, 42]
+    #i     e     f  d  g
+    [0, 0b00, 0b01, 0, 0],
+    [1, 0b00, 0b10, 1, 1],
+    [2, 0b00, 0b10, 1, 0],
+    [3, 0b11, 0b10, 0, 2]
+]
+for (i, e, f, d, g) in trials
+    @test hi_e(i) == Int(e)
+    @test hi_f(i, n) == Int(f)
+    @test hi_d(i, n) == d
+    if g != 42
+        @test hi_g(i) == g
+    end
+end
+end
+
+
+# The 2d example in the paper has a simpler 1d equivalent,
+# which is two segments in a row. d=0 for both. f is 1.
+@safetestset efdg_match_1d = "directions match a one-dimensional equivalent" begin
+using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
+n = 1
+trials = [
+    #i  e  f  d  g
+    [0, 0, 1, 0, 0],  # the first segment should match n=2
+    [1, 0, 1, 0, 1]  # the second segment will be redirected for n=2
 ]
 for (i, e, f, d, g) in trials
     @test hi_e(i) == e
     @test hi_f(i, n) == f
     @test hi_d(i, n) == d
-    if g != 42
-        @test hi_g(i) == g
-    end
+    @test hi_g(i) == g
+end
+end
+
+
+# A 3d example.
+@safetestset efdg_match_3d = "directions match a three-dimensional equivalent" begin
+using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
+n = 3
+trials = [
+    #i      e      f  d  g
+    [0, 0b000, 0b001, 0, 0], # segments 0-2 match n=2
+    [1, 0b000, 0b010, 1, 1],
+    [2, 0b000, 0b010, 1, 0],
+    [3, 0b011, 0b111, 2, 2], # segment 3 gets redirected in z-direction
+    [4, 0b011, 0b111, 2, 0], # segment 4 also in z direction
+    [5, 0b110, 0b100, 1, 1], # then we repeat the 2d plane in reverse.
+    [6, 0b110, 0b100, 1, 0],
+    [7, 0b101, 0b100, 0, 3]
+]
+for (i, e, f, d, g) in trials
+    @test hi_e(i) == Int(e)
+    @test hi_f(i, n) == Int(f)
+    @test hi_d(i, n) == d
+    @test hi_g(i) == g
 end
 end
 
@@ -100,6 +144,23 @@ using BijectiveHilbert: hi_e, hi_e_orig
 # Show our implementation for hi_e matches the specification.
 for i = 1:100
     @test(hi_e(i) == hi_e_orig(i))
+end
+end
+
+
+@safetestset cubes_neighbor_along_g_coord = "cubes are neighbors along gth coordinate" begin
+# From page 12, just below the figure. The definition of the directions.
+using BijectiveHilbert: hi_e, hi_f, hi_g
+for n in 2:5
+    # Goes to 2^n-2, not 2^n-1 because there is no neighbor for the last point.
+    for i in 0:(1<<n - 2)
+        fside = hi_f(i, n) ⊻ (1<<hi_g(i))
+        eside = hi_e(i + 1)
+        if fside != eside
+            @show n, i, fside, eside
+        end
+        @test fside == eside
+    end
 end
 end
 
@@ -128,7 +189,7 @@ using BijectiveHilbert: hi_d, hi_g
 for n = 1:5
     d = hi_d(1<<n - 1, n)
     g = hi_g(1<<n - 1)
-    @test d == g
+    @test d % n == g % n
 end
 end
 
@@ -165,16 +226,17 @@ end
 @safetestset hi_edg_invariant_n1 = "hi e, d, g invariant at n-1" begin
 using BijectiveHilbert: hi_d, hi_e, hi_g
 # invariant for e, d, and g. pg. 11. Eq. 1.
-# Should this work? The text says it should work.
+# Should this work? The text says it should work, but g for the last cube
+# isn't meaningful.
 n = 5
 i = 1<<n - 1
-@test(hi_e(i + 1) == hi_e(i) ⊻ (1 << hi_d(i, n)) ⊻ (1 << hi_g(i)))
+@test(hi_e(i + 1) == (hi_e(i) ⊻ (1 << hi_d(i, n)) ⊻ (1 << hi_g(i))))
 end
 
+
 @safetestset hi_e_reflection = "hi_e reflects to f" begin
-using BijectiveHilbert: hi_e, hi_d, hi_f
+using BijectiveHilbert: hi_d, hi_e, hi_f
 n = 5
-# XXX doesn't hold for 0
 for i = 0:(1<<n - 1)
     e = hi_e(i)
     d = hi_d(i, n)
