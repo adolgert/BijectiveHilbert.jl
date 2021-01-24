@@ -7,4 +7,10 @@ export encode_hilbert
 export decode_hilbert
 export hilbert_order
 
+include("skilling.jl")
+export GlobalGray
+export axis_type
+export transpose_type
+export encode_hilbert_zero!
+export decode_hilbert_zero!
 end
