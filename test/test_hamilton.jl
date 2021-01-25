@@ -356,24 +356,28 @@ using BijectiveHilbert: hilbert_index, hilbert_index_paper
 dim_cnt = 4
 m = 3
 indices = Base.IteratorsMD.CartesianIndices(tuple(collect(1<<m for i in 1:dim_cnt)...))
-seen2 = Dict{Int64, NTuple{dim_cnt,Int64}}()
+seen2 = Dict{UInt64, Vector{UInt8}}()
 for idx in indices
-    h = hilbert_index(dim_cnt, m, Tuple(idx), 4)
-    seen2[h] = Tuple(idx)
+    # -1 for zero-based.
+    vidx = convert(Vector{UInt8}, [Tuple(idx)...]) .- 1
+    h = hilbert_index_paper(dim_cnt, m, vidx)
+    seen2[h] = vidx
     @test h >= 0
     @test h < 1<<(dim_cnt * m)
 end
 @test(length(seen2) == 1<<(dim_cnt * m))
-for hidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
-    differ = seen2[hidx] .!= seen2[hidx + 1]
+for ihidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
+    hidx = UInt64(ihidx)
+    differ = seen2[hidx] .!= seen2[hidx + one(UInt64)]
     @test(sum(differ) == 1)
-    choose = [x for x in 1:dim_cnt if differ[x]]
-    a = collect(seen2[hidx])[choose]
-    b = collect(seen2[hidx + 1])[choose]
-    dx = (a > b) ? a - b : b - a
-    if dx != 1
-        @test dx == 1
-        break
+    if sum(differ) == 1
+        a = seen2[hidx][differ][1]
+        b = seen2[hidx + 1][differ][1]
+        dx = (a > b) ? a - b : b - a
+        if UInt64(dx) != UInt64(1)
+            @test UInt64(dx) == UInt64(1)
+            break
+        end
     end
 end
 end

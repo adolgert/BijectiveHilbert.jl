@@ -97,7 +97,7 @@ tries = [
 ]
 for (try_idx, trial) in enumerate(tries)
     x, y, k, n = trial
-    y1 = BijectiveHilbert.rotatelefta(x, k, n)
+    y1 = BijectiveHilbert.rotateleft(x, k, n)
     if y != y1
         println("k ", k, " n ", n, " ", bitstring(y), " ", bitstring(y1))
     end

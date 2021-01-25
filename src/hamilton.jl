@@ -141,10 +141,12 @@ function update1(l, t, w, n, e, d)
     while d >= n
         d -= n
     end
-    if d == zero(d)
-        e ⊻= one(e) << (n - 1)
-    else
-        e ⊻ one(e) << (d - 1)
+    if (w & one(w)) == zero(w)
+        if d == zero(d)
+            e ⊻= one(e) << (n - 1)
+        else
+            e ⊻= one(e) << (d - 1)
+        end
     end
     e, d
 end
@@ -197,7 +199,7 @@ function hilbert_index_inv_paper!(n, m, h, p)
     p .= zero(eltype(p))
     nmask = fbvn1s(T, n)
     for i = (m - 1):-1:0
-        w = (h & (nmask << (i * n))) >> (i * n)
+        w = (h >> (i * n)) & nmask
         t = brgc(w)
         l = hi_T_inv(t, d, e, n)
         set_indices_bits!(p, l, n, i)
