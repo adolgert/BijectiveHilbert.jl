@@ -1,31 +1,3 @@
-@safetestset gray_code_symmetry = "Gray code symmetry" begin
-using BijectiveHilbert
-# for i in 0:10
-#     println(lpad(i, 3, " "), " ", lpad(string(BijectiveHilbert.brgc(i), base = 2), 8, "0"))
-# end
-# Here's a test of the gray code.
-n = 5
-for i in 0:(1 << n - 1)
-    # println(BijectiveHilbert.brgc(1<<n - 1 - i), " ", BijectiveHilbert.brgc(i) ⊻ (1 << (n-1)))
-    @test(BijectiveHilbert.brgc(1<<n - 1 - i) == BijectiveHilbert.brgc(i) ⊻ (1 << (n - 1)))
-end
-end
-
-@safetestset gray_code_single = "Gray code changes one bit" begin
-using BijectiveHilbert: brgc, is_power_of_two
-for i in 1:1000
-    @test is_power_of_two(brgc(i) ⊻ brgc(i + 1))
-end
-end
-
-
-@safetestset brgc_own_inverse = "Gray code is own inverse" begin
-using BijectiveHilbert
-for i in 0:1000
-    @test(BijectiveHilbert.brgc_inv(BijectiveHilbert.brgc(i)) == i)
-end
-end
-
 
 @safetestset hi_g_definition = "g is the direction of gray code" begin
 using BijectiveHilbert: brgc, hi_g
@@ -328,7 +300,7 @@ end
 
 
 @safetestset get_ith_bit_trials = "trials show can get ith bit of vectors" begin
-using BijectiveHilbert: ith_bit_of_indices
+using BijectiveHilbert: ith_bit_of_indices, get_location
 
 v = [0b01110100, 0b01101010, 0b01011001]
 trials = [
@@ -343,6 +315,8 @@ trials = [
 ]
 for (idx, t0) in trials
     @test bitstring(ith_bit_of_indices(3, v, idx)) == t0
+    # Look, Hamilton's version matches.
+    @test bitstring(get_location(v, idx)) == t0
 end
 end
 
@@ -419,6 +393,30 @@ for i in 0:(1<<m - 1)
             break
         end
     end
+end
+end
+
+
+@safetestset libhilbert_matches = "libhilbert output matches" begin
+using BijectiveHilbert: hilbert_index_paper
+n = 4
+b = 5
+trials = [
+    [10, 1, 1, 1, 1],
+    [11, 1, 0, 1, 1],
+    [12, 1, 0, 1, 0],
+    [13, 1, 1, 1, 0],
+    [14, 1, 1, 0, 0],
+    [15, 1, 0, 0, 0],
+    [16, 2, 0, 0, 0],
+    [17, 2, 0, 1, 0],
+    [18, 2, 0, 1, 1],
+    [19, 2, 0, 0, 1]
+]
+for trial in trials
+    v = convert(Vector{UInt8}, trial[2:end])
+    result = Int(hilbert_index_paper(n, b, v))
+    @test result == trial[1]
 end
 end
 

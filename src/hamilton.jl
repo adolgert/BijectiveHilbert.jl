@@ -10,18 +10,6 @@
 # ⌈x⌉ = ceil(x)
 # ⌊x⌋ = floor(x)
 
-# binary reflected gray code
-brgc(i) = i ⊻ (i >> 1)
-
-function brgc_inv(g::Integer)
-    i = g
-    m = log_base2(g)
-    for j = 1:m
-        i = i ⊻ (g >> j)
-    end
-    i
-end
-
 
 # hi_g(i) is the direction in which brgc changes.
 # It is also tells us the axis along which the exit of one
@@ -77,11 +65,12 @@ end
 # T_{(e,d)}(b), so read right-to-left.
 # The paper means to bit rotate over the n bits that are in use,
 # not all n bits. This is not the usual bitrotate!
-hi_T(b, d, e, n) = rotateright(b ⊻ e, d + one(d), n)
+# This had a +1 in the paper.
+hi_T(b, d, e, n) = rotateright(b ⊻ e, d, n)
 
 # The author's code differs with his paper. It doesn't add one.
 # https://github.com/pdebuyl/libhilbert/blob/master/include/Hilbert/Algorithm.hpp
-hi_T_inv(b, d, e, n) = rotateleft(b, d + one(d), n) ⊻ e
+hi_T_inv(b, d, e, n) = rotateleft(b, d, n) ⊻ e
 
 # Lemma 2.12, page 15.
 # Is it -2 or -1?
@@ -102,6 +91,18 @@ function ith_bit_of_indices(n, p, i)
     l = zero(eltype(p))
     for j = 1:n
         l |= (p[j] & (one(eltype(p))<<i)) >> (i - j + one(eltype(p)))
+    end
+    l
+end
+
+
+# hamilton version of getting the ith bit, zero-indexed i.
+function get_location(p::Vector{T}, i) where {T}
+    l = zero(T)
+    for j = eachindex(p)
+        if (p[j] & (one(T) << i)) != 0
+            l |= (one(T) << (j - 1))
+        end
     end
     l
 end
@@ -134,6 +135,17 @@ function bitrange(h, n, i)
 end
 
 
+function update2(l, t, w, n, e, d)
+    e = l
+    e ⊻= (one(e) << d)
+    d += one(d) + first_set_bit(t)
+    while d >= n
+        d -= n
+    end
+    e, d
+end
+
+
 """
     hilbert_index(n, m, p)
 
@@ -144,16 +156,20 @@ Rau-Chaplin.
 function hilbert_index_paper(n, m, p)
     h = zero(eltype(p))  # hilbert index
     e = zero(eltype(p))  # entry point
-    d = zero(eltype(p))  # direction
+    d = one(eltype(p))  # direction
+    nmask = fbvn1s(eltype(p), n)
     for i = (m - 1):-1:0  # i is an index. Can be any type.
         l = ith_bit_of_indices(n, p, i)
-        t = rotateright(l ⊻ e, d, n)
-        w = brgc_inv(t)
-        h = (h << n) | w
-        e = e ⊻ rotateleft(hi_e(w), d, n)
-        d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
+        t = hi_T(l, d, e, n)
+        w = t
+        if i < m - 1
+            w ⊻= (one(w) << (n - 1))
+        end
+        # Concatenate to the index
+        h |= (w & nmask) << (i * n)
+        e, d = update2(l, t, w, n, e, d)
     end
-    h
+    brgc_inv(h)
 end
 
 
