@@ -430,3 +430,18 @@ p = zeros(Int, 3)
 set_indices_bits!(p, l, m, i)
 @test p == [0, 1<<i, 1<<i]
 end
+
+
+@safetestset paper_inv = "paper hilbert is own inverse" begin
+using BijectiveHilbert: hilbert_index_paper, hilbert_index_inv_paper!
+for n in 2:5
+    for b in 2:4
+        p = zeros(UInt8, n)
+        for h in 0:(1<<(n*b) - 1)
+            hilbert_index_inv_paper!(n, b, UInt64(h), p)
+            h2 = hilbert_index_paper(n, b, p)
+            @test h2 == UInt64(h)
+        end
+    end
+end
+end

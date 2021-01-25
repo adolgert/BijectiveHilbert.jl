@@ -135,6 +135,21 @@ function bitrange(h, n, i)
 end
 
 
+function update1(l, t, w, n, e, d)
+    e = l ⊻ (one(l) << d)
+    d += one(d) + first_set_bit(t)
+    while d >= n
+        d -= n
+    end
+    if d == zero(d)
+        e ⊻= one(e) << (n - 1)
+    else
+        e ⊻ one(e) << (d - 1)
+    end
+    e, d
+end
+
+
 function update2(l, t, w, n, e, d)
     e = l
     e ⊻= (one(e) << d)
@@ -154,12 +169,13 @@ component of extent less than 2^m. Algorithm 1 of Hamilton and
 Rau-Chaplin.
 """
 function hilbert_index_paper(n, m, p)
-    h = zero(eltype(p))  # hilbert index
-    e = zero(eltype(p))  # entry point
-    d = one(eltype(p))  # direction
-    nmask = fbvn1s(eltype(p), n)
+    T = UInt64
+    h = zero(T)  # hilbert index
+    e = zero(T)  # entry point
+    d = one(T)  # direction
+    nmask = fbvn1s(T, n)
     for i = (m - 1):-1:0  # i is an index. Can be any type.
-        l = ith_bit_of_indices(n, p, i)
+        l = T(ith_bit_of_indices(n, p, i))
         t = hi_T(l, d, e, n)
         w = t
         if i < m - 1
@@ -170,6 +186,23 @@ function hilbert_index_paper(n, m, p)
         e, d = update2(l, t, w, n, e, d)
     end
     brgc_inv(h)
+end
+
+
+function hilbert_index_inv_paper!(n, m, h, p)
+    T = UInt64
+    e = zero(T)
+    d = one(T)
+    l = zero(T)
+    p .= zero(eltype(p))
+    nmask = fbvn1s(T, n)
+    for i = (m - 1):-1:0
+        w = (h & (nmask << (i * n))) >> (i * n)
+        t = brgc(w)
+        l = hi_T_inv(t, d, e, n)
+        set_indices_bits!(p, l, n, i)
+        e, d = update1(l, t, w, n, e, d)
+    end
 end
 
 
