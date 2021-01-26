@@ -449,3 +449,19 @@ for n in 2:5
     end
 end
 end
+
+
+@safetestset brgc_mask_equal = "mask calculation matches paper" begin
+using BijectiveHilbert: extract_mask, extract_mask_paper, hi_d
+using Random
+rng = MersenneTwister(974073242)
+for trial in 1:1000
+    n = rand(rng, 2:7)
+    m = rand(rng, 2:5, n)
+    i = rand(rng, 0:(n - 1))
+    d = hi_d(i, n)
+    a = extract_mask(m, n, d, i)
+    b = extract_mask_paper(m, n, d, i)
+    @test a == b
+end
+end

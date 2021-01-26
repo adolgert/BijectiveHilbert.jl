@@ -240,3 +240,56 @@ function hilbert_index_inv(n, m, h)
     end
     p
 end
+
+
+"""
+Calculates a bit-mask for excluding Gray code values when the level
+is below the resolution of the dimension.
+
+Bits free at iteration `i`. Vector of resolutions, in powers of two,
+`m`. Dimensions `n` so that `length(m)==n`. `i` is the level down
+in the Hilbert curve. `d` is the direction, called `hi_d` above.
+
+Returns both the mask and the number of bits set in the mask.
+"""
+function extract_mask(m::Vector, n, d, i)
+    T = UInt64
+    mask = zero(T)
+    b = 0
+    jm = one(T)
+    j = d
+    while true
+        if m[j + 1] > i
+            mask |= jm
+            b += 1
+        end
+        jm <<= one(T)
+        if jm == zero(T)
+            jm = one(T)
+        end
+        j += 1
+        if j == n
+            j = 0
+        end
+        if j == d
+            break
+        end
+    end
+    mask, b
+end
+
+
+function extract_mask_paper(m::Vector, n, d, i)
+    T = UInt64
+    mask = zero(T)
+    b = 0
+    for j = (n-1):-1:0
+        mask <<= one(T)
+        jn = (j + d) % n
+        if m[jn + 1] > i
+            mask |= one(T)
+            b += 1
+        end
+    end
+    mask, b
+end
