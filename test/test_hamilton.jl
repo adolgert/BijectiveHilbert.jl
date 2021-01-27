@@ -406,3 +406,28 @@ for trial in 1:1000
     @test a == b
 end
 end
+
+
+@safetestset libhilbert_hc_matches = "libhilbert compressed output matches" begin
+using BijectiveHilbert: coords_to_compact_index
+n = 4
+b = 5
+trials = [
+    [10, 1, 1, 1, 1],
+    [11, 1, 0, 1, 1],
+    [12, 1, 0, 1, 0],
+    [13, 1, 1, 1, 0],
+    [14, 1, 1, 0, 0],
+    [15, 1, 0, 0, 0],
+    [16, 2, 0, 0, 0],
+    [17, 2, 0, 1, 0],
+    [18, 2, 0, 1, 1],
+    [19, 2, 0, 0, 1]
+]
+for trial in trials
+    v = convert(Vector{UInt8}, trial[2:end])
+    ms = [b, b, b, b]
+    result = Int(coords_to_compact_index(v, ms, n))
+    @test result == trial[1]
+end
+end

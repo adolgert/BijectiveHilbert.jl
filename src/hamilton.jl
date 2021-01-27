@@ -163,20 +163,14 @@ function update2(l, t, w, n, e, d)
 end
 
 
-"""
-    hilbert_index(n, m, p)
-
-Hilbert index for an `n`-dimensional vector `p`, with each
-component of extent less than 2^m. Algorithm 1 of Hamilton and
-Rau-Chaplin.
-"""
-function hilbert_index_paper(n, m, p)
+function hilbert_index_paper!(n, m, p, ds)
     T = UInt64
     h = zero(T)  # hilbert index
     e = zero(T)  # entry point
     d = one(T)  # direction
     nmask = fbvn1s(T, n)
     for i = (m - 1):-1:0  # i is an index. Can be any type.
+        ds[i + 1] = d
         l = T(ith_bit_of_indices(n, p, i))
         t = hi_T(l, d, e, n)
         w = t
@@ -188,6 +182,19 @@ function hilbert_index_paper(n, m, p)
         e, d = update2(l, t, w, n, e, d)
     end
     brgc_inv(h)
+end
+
+
+"""
+    hilbert_index(n, m, p)
+
+Hilbert index for an `n`-dimensional vector `p`, with each
+component of extent less than 2^m. Algorithm 1 of Hamilton and
+Rau-Chaplin.
+"""
+function hilbert_index_paper(n, m, p)
+    ds = zeros(Int, m)
+    hilbert_index_paper!(n, m, p, ds)
 end
 
 
@@ -292,4 +299,79 @@ function extract_mask_paper(m::Vector, n, d, i)
         end
     end
     mask, b
+end
+
+
+function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
+    hc = zero(T)
+    hr = 0
+    hcr = 0
+    hm = one(T)
+    hcm = one(T)
+    for i = 0:(m-1)
+        j = ds[i + 1]
+        while true
+            if ms[j + 1] > i
+                if h & hm != 0
+                    hc |= hcm
+                end
+                hcm <<= 1
+                if hcm == 0
+                    hcm = one(T)
+                    hcr += 1
+                end
+            end
+            j += 1
+            if j == n
+                j = 0
+            end
+            hm <<= 1
+            if hm == zero(T)
+                hm = one(T)
+                hr += 1
+            end
+            if j != ds[i + 1]
+                break
+            end
+        end
+    end
+    hc
+end
+
+
+function coords_to_compact_index(p::Vector{A}, ms::Vector, n) where {A}
+    m = maximum(ms)
+    M = sum(ms)
+    mn = m * n
+    ds = zeros(Int, m)
+    h = hilbert_index_paper!(n, m, p, ds)
+    compact_index(ms, ds, n, m, h)
+end
+
+
+function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
+    m = maximum(ms)
+    M = sum(ms)
+
+    e = zero(T)
+    d = one(T)
+    l = zero(T)
+    p .= zero(A)
+    # work from most significant bit to least significant bit
+    for i = (m - 1):-1:0
+        mask, b = extract_mask(m, n, d, i)
+        # XXX d, n or n, d?
+        ptrn = rotateright(e, d, n)
+
+        # Get the Hilbert index bits.
+        M -= b
+        r = getBits(hc, b, M, r)
+        
+        # XXX returns both?
+        t, w = brgc_rank_inv(mask, ptrn, r, n, b)
+        # XXX order of arguments?
+        l = hi_t(e, d, n)
+        set_indices_bits!(p, n, i, l)
+        e, d = update1(l, t, w, n, e, d)
+    end
 end

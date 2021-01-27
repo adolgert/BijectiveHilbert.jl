@@ -102,3 +102,53 @@ function brgc_rank(mask::T, w::T, n) where {T}
     end
     r
 end
+
+
+function brgc_rank_inv(mask::T, ptrn, r, n, b) where {T}
+    g = zero(T)
+    gi = zero(T)
+    i = n - 1
+    ir = 0  # rack
+    im = one(T) << i
+    j = b - 1
+    jr = 0  # rack
+    jm = one(T) << j
+    gi0 = zero(T)
+    gi1 = zero(T)
+    g0 = zero(T)
+    while i >= 0
+        if mask & im != 0
+            gi1 = gi0
+            gi0 = ((r & jm) > 0) ? one(T) : zero(T)
+            g0 = gi0 ⊻ gi1
+            if gi0 != 0
+                gi |= im
+            end
+            if g0 != 0
+                g |= im
+            end
+            jm >>= 1
+            if jm == 0
+                jm = one(T) << (8 * sizeof(T) - 1)
+                jr -= 1
+            end
+        else
+            g0 = ((ptrn & im) > 0) ? one(T) : zero(T)
+            gi1 = gi0
+            gi0 = g0 ⊻ gi1
+            if gi0 != 0
+                gi |= im
+            end
+            if g0 != 0
+                g |= im
+            end
+        end
+        im >>= 1
+        if im == 0
+            im = one(T) << (8 * sizeof(T) - 1)
+            ir -= 1
+        end
+        i -= 1
+    end
+    g, gi
+end
