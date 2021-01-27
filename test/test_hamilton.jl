@@ -444,7 +444,7 @@ for i in 1:length(ms)
     p[i] = UInt8(rand(rng, 0:(1 << ms[i] - 1)))
 end
 hc = coords_to_compact_index(p, ms, n)
-r = similar(p)
+r = zeros(UInt8, n)
 compact_index_to_coords!(r, ms, n, hc)
 @test r == p
 end

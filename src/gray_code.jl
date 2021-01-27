@@ -103,16 +103,27 @@ function brgc_rank(mask::T, w::T, n) where {T}
     r
 end
 
+function bbv_modsplit(T, k)
+    bits = 8 * sizeof(T)
+    b = k
+    r = b ÷ bits
+    b -= r * bits
+    r, b
+end
 
+"""
+grayCodeRankInv(mask, ptrn, r, n, b, t, w)
+Returns t, w.
+"""
 function brgc_rank_inv(mask::T, ptrn, r, n, b) where {T}
     g = zero(T)
     gi = zero(T)
     i = n - 1
-    ir = 0  # rack
-    im = one(T) << i
+    ir, ims = bbv_modsplit(T, i)
+    im = one(T) << ims
     j = b - 1
-    jr = 0  # rack
-    jm = one(T) << j
+    jr, jms = bbv_modsplit(T, j)
+    jm = one(T) << jms
     gi0 = zero(T)
     gi1 = zero(T)
     g0 = zero(T)

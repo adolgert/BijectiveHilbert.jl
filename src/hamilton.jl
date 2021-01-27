@@ -312,7 +312,7 @@ function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
         j = ds[i + 1]
         while true
             if ms[j + 1] > i
-                if h & hm != 0
+                if h & hm != 0 && hcr == 0
                     hc |= hcm
                 end
                 hcm <<= 1
@@ -371,7 +371,7 @@ function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
         
         t, w = brgc_rank_inv(mask, ptrn, r, n, b)
 
-        l = hi_T_inv(l, d, e, n)
+        l = hi_T_inv(t, d, e, n)
         set_indices_bits!(p, l, n, i)
         e, d = update1(l, t, w, n, e, d)
     end
