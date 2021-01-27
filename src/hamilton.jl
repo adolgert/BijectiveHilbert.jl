@@ -352,6 +352,7 @@ end
 function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
     m = maximum(ms)
     M = sum(ms)
+    bit_cnt = 8 * sizeof(T)
 
     e = zero(T)
     d = one(T)
@@ -359,19 +360,19 @@ function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
     p .= zero(A)
     # work from most significant bit to least significant bit
     for i = (m - 1):-1:0
-        mask, b = extract_mask(m, n, d, i)
-        # XXX d, n or n, d?
+        mask, b = extract_mask(ms, n, d, i)
+        # rotateright(val, shift_cnt, total_bits)
         ptrn = rotateright(e, d, n)
 
         # Get the Hilbert index bits.
         M -= b
-        r = getBits(hc, b, M, r)
+        # b bits from hc at index M, into r
+        r = get_bits(hc, b, M)
         
-        # XXX returns both?
         t, w = brgc_rank_inv(mask, ptrn, r, n, b)
-        # XXX order of arguments?
-        l = hi_t(e, d, n)
-        set_indices_bits!(p, n, i, l)
+
+        l = hi_T_inv(l, d, e, n)
+        set_indices_bits!(p, l, n, i)
         e, d = update1(l, t, w, n, e, d)
     end
 end

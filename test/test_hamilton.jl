@@ -431,3 +431,20 @@ for trial in trials
     @test result == trial[1]
 end
 end
+
+
+@safetestset compact_index_is_its_inverse = "compact index is its inverse" begin
+using BijectiveHilbert: coords_to_compact_index, compact_index_to_coords!
+using Random
+rng = MersenneTwister(7829209)
+n = rand(rng, 2:5)
+ms = rand(rng, 2:5, n)
+p = zeros(UInt8, n)
+for i in 1:length(ms)
+    p[i] = UInt8(rand(rng, 0:(1 << ms[i] - 1)))
+end
+hc = coords_to_compact_index(p, ms, n)
+r = similar(p)
+compact_index_to_coords!(r, ms, n, hc)
+@test r == p
+end

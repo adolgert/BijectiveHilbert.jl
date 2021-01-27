@@ -211,6 +211,15 @@ function set_bits_naive(h, n, i, w)
 end
 
 
+"""
+Get b bits from v, starting at place i.
+"""
+function get_bits(v::T, b, i) where {T}
+    n = 8 * sizeof(T)
+    (v << (n - b - i)) >> (n - b)
+end
+
+
 function trailing_set_bits_hamilton(i::UInt64)
     T = UInt64
     c = zero(Int)
