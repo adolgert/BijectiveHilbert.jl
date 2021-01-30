@@ -293,35 +293,11 @@ end
 
 
 @safetestset hilbert_index_complete4d = "hilbert index is a complete set for 4d" begin
-using BijectiveHilbert: hilbert_index, hilbert_index_paper
-# Try a 4d hilbert curve.
-dim_cnt = 4
-m = 3
-indices = Base.IteratorsMD.CartesianIndices(tuple(collect(1<<m for i in 1:dim_cnt)...))
-seen2 = Dict{UInt64, Vector{UInt8}}()
-for idx in indices
-    # -1 for zero-based.
-    vidx = convert(Vector{UInt8}, [Tuple(idx)...]) .- 1
-    h = hilbert_index_paper(dim_cnt, m, vidx)
-    seen2[h] = vidx
-    @test h >= 0
-    @test h < 1<<(dim_cnt * m)
-end
-@test(length(seen2) == 1<<(dim_cnt * m))
-for ihidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
-    hidx = UInt64(ihidx)
-    differ = seen2[hidx] .!= seen2[hidx + one(UInt64)]
-    @test(sum(differ) == 1)
-    if sum(differ) == 1
-        a = seen2[hidx][differ][1]
-        b = seen2[hidx + 1][differ][1]
-        dx = (a > b) ? a - b : b - a
-        if UInt64(dx) != UInt64(1)
-            @test UInt64(dx) == UInt64(1)
-            break
-        end
-    end
-end
+using BijectiveHilbert: SpaceGray, check_complete_set
+b = 3
+n = 4
+gg = SpaceGray(b, n)
+@test check_complete_set(gg, b, n)
 end
 
 
@@ -344,9 +320,10 @@ end
 
 
 @safetestset libhilbert_matches = "libhilbert output matches" begin
-using BijectiveHilbert: hilbert_index_paper
+using BijectiveHilbert: SpaceGray, encode_hilbert_zero
 n = 4
 b = 5
+gg = SpaceGray(b, n)
 trials = [
     [10, 1, 1, 1, 1],
     [11, 1, 0, 1, 1],
@@ -361,7 +338,7 @@ trials = [
 ]
 for trial in trials
     v = convert(Vector{UInt8}, trial[2:end])
-    result = Int(hilbert_index_paper(n, b, v))
+    result = Int(encode_hilbert_zero(gg, v))
     @test result == trial[1]
 end
 end
@@ -379,15 +356,11 @@ end
 
 
 @safetestset paper_inv = "paper hilbert is own inverse" begin
-using BijectiveHilbert: hilbert_index_paper, hilbert_index_inv_paper!
+using BijectiveHilbert: check_own_inverse, SpaceGray
 for n in 2:5
     for b in 2:4
-        p = zeros(UInt8, n)
-        for h in 0:(1<<(n*b) - 1)
-            hilbert_index_inv_paper!(n, b, UInt64(h), p)
-            h2 = hilbert_index_paper(n, b, p)
-            @test h2 == UInt64(h)
-        end
+        gg = SpaceGray(b, n)
+        @test check_own_inverse(gg, b, n)
     end
 end
 end
@@ -410,7 +383,7 @@ end
 
 
 @safetestset libhilbert_hc_matches = "libhilbert compressed output matches" begin
-using BijectiveHilbert: coords_to_compact_index
+using BijectiveHilbert: encode_hilbert_zero, Compact
 n = 4
 b = 5
 trials = [
@@ -428,33 +401,30 @@ trials = [
 for trial in trials
     v = convert(Vector{UInt8}, trial[2:end])
     ms = [b, b, b, b]
-    result = Int(coords_to_compact_index(v, ms, n))
+    gg = Compact(ms, n)
+    result = Int(encode_hilbert_zero(gg, v))
     @test result == trial[1]
 end
 end
 
 
 @safetestset compact_index_is_its_inverse = "compact index is its inverse" begin
-using BijectiveHilbert: coords_to_compact_index, compact_index_to_coords!
+using BijectiveHilbert: Compact, check_own_inverse
 using Random
-rng = MersenneTwister(7829209)
-n = rand(rng, 2:5)
-ms = rand(rng, 2:5, n)
-p = zeros(UInt8, n)
-for i in 1:length(ms)
-    p[i] = UInt8(rand(rng, 0:(1 << ms[i] - 1)))
+rng = MersenneTwister(432479874)
+for n = [5]
+    for i in 1:1
+        ms = rand(rng, 2:5, n)
+        gg = Compact(ms, n)
+        @test check_own_inverse(gg, ms, n)
+    end
 end
-hc = coords_to_compact_index(p, ms, n)
-r = zeros(UInt8, n)
-compact_index_to_coords!(r, ms, n, hc)
-@test r == p
 end
-
 
 
 @safetestset compact_index_matches_examples = "compact index matches examples" begin
 include(joinpath(dirname(@__FILE__), "check_hamilton.jl"))
-using BijectiveHilbert: compact_index_to_coords!
+using BijectiveHilbert: Compact, decode_hilbert_zero!, index_type, axis_type
 fns = ["test/3_2_5_7.txt", "test/2_5_3.txt", "test/3_4_2_3.txt",
        "test/3_5_2_3.txt", "test/4_5_5_5.txt"]
 for fn in fns
@@ -464,10 +434,12 @@ for fn in fns
     if isfile(fn)
         h, X, ms = hamilton_example(fn)
         n = size(X, 1)
-        p = zeros(UInt8, n)
+        gg = Compact(ms, n)
+        p = zeros(axis_type(gg), n)
+        H = index_type(gg)
         for i in eachindex(h)
-            compact_index_to_coords!(p, ms, n, h[i])
-            @test p == X[:, i]
+            decode_hilbert_zero!(gg, p, H(h[i]))
+            @test convert(Vector{UInt8}, p) == X[:, i]
         end
     end
 end
@@ -476,7 +448,7 @@ end
 
 @safetestset compact_index_inv_matches_examples = "inverse compact index matches examples" begin
 include(joinpath(dirname(@__FILE__), "check_hamilton.jl"))
-using BijectiveHilbert: coords_to_compact_index
+using BijectiveHilbert: Compact, encode_hilbert_zero, axis_type, index_type
 fns = ["test/3_2_5_7.txt", "test/2_5_3.txt", "test/3_4_2_3.txt",
        "test/3_5_2_3.txt", "test/4_5_5_5.txt"]
 for fn in fns
@@ -486,11 +458,13 @@ for fn in fns
     if isfile(fn)
         h, X, ms = hamilton_example(fn)
         n = size(X, 1)
-        p = zeros(UInt8, n)
+        gg = Compact(ms, n)
+        H = index_type(gg)
         for i in eachindex(h)
-            hc = coords_to_compact_index(X[:, i], ms, n)
-            @test hc == h[i]
-            if hc != h[i]
+            XX = convert(Vector{axis_type(gg)}, X[:, i])
+            hc = encode_hilbert_zero(gg, XX)
+            @test hc == H(h[i])
+            if hc != H(h[i])
                 @show n, ms, i, h[i], hc, X[:, i]
                 break
             end

@@ -70,7 +70,7 @@ for i in 1:1000
     b = rand(rng, 2:8)
     gg = GlobalGray(b, n)
     AT = axis_type(gg)
-    TT = transpose_type(gg)
+    TT = index_type(gg)
     X = convert(Vector{AT}, rand(rng, 0:(1<<b - 1), n))
     X0 = copy(X)
     h = encode_hilbert_zero!(gg, X)
@@ -88,7 +88,7 @@ end
   if false
   gg = GlobalGray(b, n)
   A = axis_type(gg)
-  TT = transpose_type(gg)
+  TT = index_type(gg)
   X = zeros(A, n)
   Y = copy(X)
   hh = UInt64(0)

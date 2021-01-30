@@ -35,7 +35,7 @@ See also: [`decode_hilbert_zero`](@ref), [`encode_hilbert`](@ref).
 
 [^1]: N. Chen, N. Wang, B. Shi, A new algorithm for encoding and decoding the Hilbert order. Software—Practice and Experience 2007; 37(8): 897–908.
 """
-function encode_hilbert_zero(x, y)
+function encode_hilbert_zero(x::Integer, y::Integer)
     z = zero(x)
     if x == 0 && y == 0
         return z

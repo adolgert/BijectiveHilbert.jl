@@ -1,6 +1,19 @@
 bshow(i) = bitstring(i)[end-7:end]
 
 
+function large_enough_unsigned(bit_cnt)
+    unsigned_types = [UInt8, UInt16, UInt32, UInt64, UInt128]
+    atype = nothing
+    for xtype in unsigned_types
+        if sizeof(xtype) * 8 >= bit_cnt
+            atype = xtype
+            break
+        end
+    end
+    atype
+end
+
+
 """
     is_power_of_two(v::Base.BitInteger)
 

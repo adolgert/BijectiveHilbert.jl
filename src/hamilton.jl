@@ -166,8 +166,7 @@ end
 """
 Algorithm.hpp: _coordsToIndex
 """
-function hilbert_index_paper!(n, m, p, ds)
-    T = UInt64
+function hilbert_index_paper!(::Type{T}, n, m, p, ds) where {T <: Integer}
     h = zero(T)  # hilbert index
     e = zero(T)  # entry point
     d = one(T)  # direction
@@ -195,14 +194,13 @@ Hilbert index for an `n`-dimensional vector `p`, with each
 component of extent less than 2^m. Algorithm 1 of Hamilton and
 Rau-Chaplin.
 """
-function hilbert_index_paper(n, m, p)
+function hilbert_index_paper(::Type{T}, n, m, p) where {T <: Integer}
     ds = zeros(Int, m)
-    hilbert_index_paper!(n, m, p, ds)
+    hilbert_index_paper!(T, n, m, p, ds)
 end
 
 
-function hilbert_index_inv_paper!(n, m, h, p)
-    T = UInt64
+function hilbert_index_inv_paper!(::Type{T}, n, m, h, p) where {T <: Integer}
     e = zero(T)
     d = one(T)
     l = zero(T)
@@ -352,12 +350,12 @@ function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
 end
 
 
-function coords_to_compact_index(p::Vector{A}, ms::Vector, n) where {A}
+function coords_to_compact_index(::Type{T}, p::Vector{A}, ms::Vector, n) where {A,T}
     m = maximum(ms)
     M = sum(ms)
     mn = m * n
     ds = zeros(Int, m)
-    h = hilbert_index_paper!(n, m, p, ds)
+    h = hilbert_index_paper!(T, n, m, p, ds)
     compact_index(ms, ds, n, m, h)
 end
 
@@ -388,4 +386,51 @@ function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
         set_indices_bits!(p, l, n, i)
         e, d = update1(l, t, w, n, e, d)
     end
+end
+
+
+struct SpaceGray{A,T} <: HilbertAlgorithm{A,T}
+    b::Int
+    n::Int
+end
+
+
+function SpaceGray(b, n)
+    atype = large_enough_unsigned(b)
+    ttype = large_enough_unsigned(b * n)
+    SpaceGray{atype, ttype}(b, n)
+end
+
+
+function encode_hilbert_zero(g::SpaceGray{A,T}, X::Vector{A})::T where {A,T}
+    hilbert_index_paper(T, g.n, g.b, X)
+end
+
+
+function decode_hilbert_zero!(g::SpaceGray{A,T}, X::Vector{A}, h::T) where {A,T}
+    hilbert_index_inv_paper!(T, g.n, g.b, h, X)
+end
+
+
+struct Compact{A,T} <: HilbertAlgorithm{A,T}
+    ms::Vector{Int}
+    n::Int
+end
+
+
+function Compact(ms::Vector{Int}, n)
+    b = maximum(ms)
+    atype = large_enough_unsigned(b)
+    ttype = large_enough_unsigned(b * n)
+    Compact{atype, ttype}(ms, n)
+end
+
+
+function encode_hilbert_zero(g::Compact{A,T}, X::Vector{A})::T where {A,T}
+    coords_to_compact_index(index_type(g), X, g.ms, g.n)
+end
+
+
+function decode_hilbert_zero!(g::Compact{A,T}, X::Vector{A}, h::T) where {A,T}
+    compact_index_to_coords!(X, g.ms, g.n, h)
 end

@@ -93,26 +93,9 @@ function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Unsigned}
 end
 
 
-struct GlobalGray{A,T}
+struct GlobalGray{A,T} <: HilbertAlgorithm{A,T}
     b::Int
     n::Int
-end
-
-
-axis_type(gg::GlobalGray{A,T}) where {A,T} = A
-transpose_type(gg::GlobalGray{A,T}) where {A,T} = T
-
-
-function large_enough_unsigned(bit_cnt)
-    unsigned_types = [UInt8, UInt16, UInt32, UInt64, UInt128]
-    atype = nothing
-    for xtype in unsigned_types
-        if sizeof(xtype) * 8 >= bit_cnt
-            atype = xtype
-            break
-        end
-    end
-    atype
 end
 
 
@@ -126,6 +109,12 @@ end
 function encode_hilbert_zero!(g::GlobalGray{A,T}, X::Vector{A})::T where {A,T}
     axes_to_transpose!(X, g.b, g.n)
     interleave_transpose(X, g.b, g.n)
+end
+
+
+function encode_hilbert_zero(g::GlobalGray{A,T}, X::Vector{A})::T where {A,T}
+    Y = copy(X)
+    encode_hilbert_zero(g, Y)
 end
 
 
