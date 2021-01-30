@@ -472,3 +472,26 @@ for fn in fns
     end
 end
 end
+
+
+@safetestset compact_for_signed = "compact hilbert for signed integers" begin
+using BijectiveHilbert
+using Random
+rng = MersenneTwister(9742439)
+for i in 1:1000
+    n = rand(rng, 3:5)
+    ms = rand(rng, 2:7, n)
+    gg = Compact(Int,Int, ms)
+    gg2 = Compact(ms)
+    x = zeros(Int, n)
+    A = axis_type(gg2)
+    y = zeros(A, n)
+    for i in 1:n
+        x[i] = rand(rng, 0:(1<<ms[i] - 1))
+        y[i] = A(x[i])
+    end
+    a = encode_hilbert_zero(gg, x)
+    b = Int(encode_hilbert_zero(gg2, y))
+    @test a == b
+end
+end

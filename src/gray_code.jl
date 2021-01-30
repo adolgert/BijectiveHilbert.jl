@@ -9,7 +9,7 @@ brgc(i) = i ⊻ (i >> 1)
 This is how the paper describes the inverse of the
 binary-reflected gray code.
 """
-function brgc_inv_naive(g::Integer)
+function brgc_inv(g::Integer)
     i = g
     m = log_base2(g)
     for j = 1:m
