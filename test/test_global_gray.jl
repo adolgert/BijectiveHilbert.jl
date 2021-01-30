@@ -73,7 +73,7 @@ for i in 1:1000
     TT = index_type(gg)
     X = convert(Vector{AT}, rand(rng, 0:(1<<b - 1), n))
     X0 = copy(X)
-    h = encode_hilbert_zero!(gg, X)
+    h = encode_hilbert_zero(gg, X)
     decode_hilbert_zero!(gg, X, h)
     @test X == X0
 end
