@@ -1,3 +1,5 @@
+module BijectivePaper
+
 # Columns are odd resolution, even resolution (rmin)
 # Columns are quadrants in x and y like you'd graph it.
 # 1 2
@@ -153,4 +155,9 @@ function hilbert_order(v::AbstractArray, subdivisions)
                     )
     end
     sortperm(iv)
+end
+
+export encode_hilbert_zero, decode_hilbert_zero
+export encode_hilbert, decode_hilbert, hilbert_order
+
 end

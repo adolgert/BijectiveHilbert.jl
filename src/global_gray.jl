@@ -121,7 +121,7 @@ end
 
 function encode_hilbert_zero(g::GlobalGray{T}, X::Vector)::T where {T}
     Y = copy(X)
-    encode_hilbert_zero(g, Y)
+    encode_hilbert_zero!(g, Y)
 end
 
 
