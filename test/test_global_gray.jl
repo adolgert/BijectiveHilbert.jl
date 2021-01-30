@@ -83,29 +83,34 @@ end
 @safetestset hilbert_one_diff = "GlobalGray values next to each other" begin
   using BijectiveHilbert
   xy = Set(Tuple{Int64, Int64}[])
-  last = [-1, 0]
-  n = 3
-  b = 5
+  n = 2
+  b = 6
+  if false
   gg = GlobalGray(b, n)
   A = axis_type(gg)
   TT = transpose_type(gg)
   X = zeros(A, n)
   Y = copy(X)
+  hh = UInt64(0)
   for h in 0:(1<<(n*b) - 1)
     decode_hilbert_zero!(gg, X, TT(h))
     tdiff = UInt64(0)
-    for cmp_idx in 1:n
-        if X[cmp_idx] > Y[cmp_idx]
-            tdiff += X[cmp_idx] - Y[cmp_idx]
-        else
-            tdiff += Y[cmp_idx] - X[cmp_idx]
+    if h > 0
+        for cmp_idx in 1:n
+            if X[cmp_idx] > Y[cmp_idx]
+                tdiff += X[cmp_idx] - Y[cmp_idx]
+            else
+                tdiff += Y[cmp_idx] - X[cmp_idx]
+            end
+        end
+        @test tdiff == 1
+        if tdiff > 1
+            @show h, X, hh, Y
+            break
         end
     end
-    @test tdiff == 1
-    if tdiff > 1
-        @show h, X, Y
-        break
-    end
     Y .= X
+    hh = h
+  end
   end
 end
