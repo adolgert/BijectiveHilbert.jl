@@ -495,3 +495,14 @@ for i in 1:1000
     @test a == b
 end
 end
+
+
+@safetestset hamilton_zero_based = "hamilton works for zero based" begin
+using BijectiveHilbert
+gg = Compact(UInt, [4, 3, 3])
+X = [9, 4, 5]
+h = encode_hilbert(gg, X)
+Y = zeros(Int, 3)
+decode_hilbert!(gg, Y, h)
+@test X == Y
+end
