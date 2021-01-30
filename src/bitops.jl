@@ -428,6 +428,56 @@ function most_significant_bit_hamilton(i::UInt8)::Int
 end
 
 
+function first_set_bit(i::T)::Int where {T <: Integer}
+    if i == 0
+        return 0
+    end
+    for j = 0:(8 * sizeof(T)  - 1)
+        if (i & (T(1) << j)) != 0
+            return j + 1
+        end
+    end
+end
+
+
+function first_set_bit(i::UInt128)::Int
+    T = UInt128
+    c = zero(Int)
+    if i == zero(T)
+        return c
+    end
+    if (i & fbvn1s(T, 64)) == zero(T)
+        i >>= T(64)
+        c ⊻= 64
+    end
+    if (i & fbvn1s(T, 32)) == zero(T)
+        i >>= T(32)
+        c ⊻= 32
+    end
+    if (i & fbvn1s(T, 16)) == zero(T)
+        i >>= T(16)
+        c ⊻= 16
+    end
+    if (i & fbvn1s(T, 8)) == zero(T)
+        i >>= T(8)
+        c ⊻= 8
+    end
+    if (i & fbvn1s(T, 4)) == zero(T)
+        i >>= T(4)
+        c ⊻= 4
+    end
+    if (i & fbvn1s(T, 2)) == zero(T)
+        i >>= T(2)
+        c ⊻= 2
+    end
+    if (i & fbvn1s(T, 1)) == zero(T)
+        i >>= T(1)
+        c ⊻= 1
+    end
+    c + one(Int)
+end
+
+
 function first_set_bit(i::UInt64)::Int
     T = UInt64
     c = zero(Int)

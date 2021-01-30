@@ -418,11 +418,18 @@ struct Compact{A,T} <: HilbertAlgorithm{A,T}
 end
 
 
-function Compact(ms::Vector{Int}, n)
+function Compact(ms::Vector{Int})
+    n = length(ms)
     b = maximum(ms)
     atype = large_enough_unsigned(b)
     ttype = large_enough_unsigned(b * n)
     Compact{atype, ttype}(ms, n)
+end
+
+
+function Compact(::Type{A}, ::Type{T}, ms::Vector{Int}) where {A,T}
+    b = maximum(ms)
+    Compact{A,T}(ms, length(ms))
 end
 
 
