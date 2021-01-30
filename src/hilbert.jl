@@ -11,18 +11,6 @@ Simple2D(::Type{T}) where {T} = Simple2D{T}()
 axis_type(::Simple2D{T}) where {T} = Int
 
 
-# Columns are odd resolution, even resolution (rmin)
-# Columns are quadrants in x and y like you'd graph it.
-# 1 2
-# 0 3
-hilbert_variant_encode_table = Function[
-    ((x, y, w) -> (x, y))          ((x, y, w) -> (x, y))
-    ((x, y, w) -> (y-w, x))        ((x, y, w) -> (y, x-w))
-    ((x, y, w) -> (y-w, x-w))      ((x, y, w) -> (y-w, x-w))
-    ((x, y, w) -> ((w<<1)-x-one(w), w-y-one(w))) ((x, y, w) -> (w-x-one(w), (w<<1)-y-one(w)))
-]
-
-
 """
     encode_hilbert_zero(::Simple2D{T}, X::Vector{A})
 
@@ -48,7 +36,7 @@ See also: [`decode_hilbert_zero`](@ref), [`encode_hilbert`](@ref).
 
 [^1]: N. Chen, N. Wang, B. Shi, A new algorithm for encoding and decoding the Hilbert order. Software—Practice and Experience 2007; 37(8): 897–908.
 """
-function encode_hilbert_zero(::Simple2D{T}, X::Vector{A}) where {A, T}
+function encode_hilbert_zero(::Simple2D{T}, X::Vector{A})::T where {A, T}
     x = X[1]
     y = X[2]
     z = zero(T)
@@ -56,17 +44,46 @@ function encode_hilbert_zero(::Simple2D{T}, X::Vector{A}) where {A, T}
         return z
     end
     rmin = convert(Int, floor(log2(max(x, y))) + 1)
-    w = one(A)<<(rmin - 1)
+    w = one(A) << (rmin - 1)
     while rmin > 0
+        z <<= 2
         if rmin&1 == 1  # odd
-            quadrant = x < w ? (y < w ? 0 : 1) : (y < w ? 3 : 2)
-            parity = 1
+            if x < w
+                if y >= w
+                    # 1
+                    x, y = (y - w, x)
+                    z += one(T)
+                end  # else x, y remain the same.
+            else
+                if y < w
+                    x, y = ((w<<1) - x - one(w), w - y - one(w))
+                    # 3
+                    z += T(3)
+                else
+                    x, y = (y - w, x - w)
+                    z += T(2)
+                    # 2
+                end
+            end
         else  # even
-            quadrant = x < w ? (y < w ? 0 : 3) : (y < w ? 1 : 2)
-            parity = 2
+            if x < w
+                if y >= w
+                    # Quadrant 3
+                    x, y = (w - x - one(w), (w << 1) - y - one(w))
+                    z += T(3)
+                end  # else do nothing for quadrant 0.
+            else
+                if y < w
+                    # 1
+                    x, y = (y, x-w)
+                    z += one(T)
+                else
+                    # 2
+                    x, y = (y-w, x-w)
+                    z += T(2)
+                end
+            end
         end
-        z = (z<<2) + T(quadrant)
-        x, y = hilbert_variant_encode_table[quadrant+1, parity](x, y, w)
         rmin -= 1
         w >>= 1
     end
@@ -74,16 +91,8 @@ function encode_hilbert_zero(::Simple2D{T}, X::Vector{A}) where {A, T}
 end
 
 
-hilbert_variant_decode_table = Function[
-    ((x, y, w) -> (x, y))          ((x, y, w) -> (x, y))
-    ((x, y, w) -> (y, x+w))        ((x, y, w) -> (y+w, x))
-    ((x, y, w) -> (y+w, x+w))      ((x, y, w) -> (y+w, x+w))
-    ((x, y, w) -> ((w<<1)-x-one(w), w-y-one(w))) ((x, y, w) -> (w-x-one(2), (w<<1)-y-one(w)))
-]
-
-
 """
-    decode_hilbert_zero(z::Integer) -> (x, y)
+    decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T)
 
 Computes the (x, y) from a Hilbert code.
 
@@ -101,7 +110,24 @@ function decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T) where {A,T}
     while z > zero(T)
         r = z & T(3)
         parity = 2 - rmin&1
-        x, y = hilbert_variant_decode_table[r+1, parity](x, y, w)
+        if rmin & 1 != 0
+            # Nothing to do for quadrant 0.
+            if r == 1
+                x, y = (y, x + w)
+            elseif r == 2
+                x, y = (y + w, x + w)
+            elseif r == 3
+                x, y = ((w << 1) - x - one(w), w - y - one(w))
+            end
+        else
+            if r == 1
+                x, y = (y + w, x)
+            elseif r == 2
+                x, y = (y + w, x + w)
+            elseif r == 3
+                x, y = (w - x - one(2), (w << 1) - y - one(w))
+            end
+        end
         z >>= 2
         rmin += 1
         w <<= 1
