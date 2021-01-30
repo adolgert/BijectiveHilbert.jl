@@ -72,40 +72,6 @@ trailing_set_bits(v) = trailing_zero_bits(~v)
 
 
 """
-Rotate bits around an n-bit window. This extends bitrotate,
-which operates on the number of bits in a type.
-"""
-function bitrotate_a(x::Base.BitInteger, k::Integer, n::Integer)
-    k == 0 && return x
-    k = k % n
-    if k > 0
-        keep = one(x)<<(n - k) - one(x)
-        shiftmask = ~zero(x) ⊻ keep
-        x << k | (x & shiftmask) >> (n - k)
-    else  # shift right for k < )
-        x << k | ((x & (one(x)<< -k - one(x))) << (n + k))
-    end
-end
-
-
-"""
-For a right rotation (-k)
-Given [b_{n-1}...b_0] return [b_{n-1+i%n}...b_{i%n}]
-"""
-function bitrotaten(x::Base.BitInteger, k::Integer, n::Integer)
-    y = zero(x)
-    for i = 0:(n - 1)
-        ind = (i - k) % n
-        ind = (ind >= 0) ? ind : ind + n
-        if (x & (one(x) << ind)) > 0
-            y |= (one(x) << i)
-        end  # else leave unset.
-    end
-    y
-end
-
-
-"""
 Treat `x` as an `n`-bit unsigned integer. Rotate the bits
 `k` places to the left, wrapping them around the right side.
 """

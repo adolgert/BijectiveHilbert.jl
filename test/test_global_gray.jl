@@ -101,8 +101,10 @@ end
             tdiff += Y[cmp_idx] - X[cmp_idx]
         end
     end
+    @test tdiff == 1
     if tdiff > 1
         @show h, X, Y
+        break
     end
     Y .= X
   end

@@ -128,10 +128,11 @@ for n in 2:5
     for i in 0:(1<<n - 2)
         fside = hi_f(i, n) ⊻ (1<<hi_g(i))
         eside = hi_e(i + 1)
+        @test fside == eside
         if fside != eside
             @show n, i, fside, eside
+            break
         end
-        @test fside == eside
     end
 end
 end
@@ -449,32 +450,10 @@ compact_index_to_coords!(r, ms, n, hc)
 @test r == p
 end
 
-using CSV
-
-
-function filename_to_hilbert_dims(fn)
-   digits = parse.(Int, split(splitext(basename(fn))[1], "_"))
-   popfirst!(digits), digits
-end
-
-
-function hamilton_example(fn)
-    n, ms = filename_to_hilbert_dims(fn)
-    cnt = prod(1 << x for x in ms)
-    h = zeros(UInt32, cnt)
-    X = zeros(UInt8, n, cnt)
-    for (i, row) in enumerate(CSV.File(fn))
-        h[i] = convert(UInt32, row[1])
-        for j in 1:length(ms)
-            X[j, i] = convert(UInt8, row[1 + j])
-        end
-    end
-    hsort = sortperm(h)
-    h[hsort], X[:, hsort], ms
-end
 
 
 @safetestset compact_index_matches_examples = "compact index matches examples" begin
+include(joinpath(dirname(@__FILE__), "check_hamilton.jl"))
 using BijectiveHilbert: compact_index_to_coords!
 fns = ["test/3_2_5_7.txt", "test/2_5_3.txt", "test/3_4_2_3.txt",
        "test/3_5_2_3.txt", "test/4_5_5_5.txt"]
@@ -496,6 +475,7 @@ end
 
 
 @safetestset compact_index_inv_matches_examples = "inverse compact index matches examples" begin
+include(joinpath(dirname(@__FILE__), "check_hamilton.jl"))
 using BijectiveHilbert: coords_to_compact_index
 fns = ["test/3_2_5_7.txt", "test/2_5_3.txt", "test/3_4_2_3.txt",
        "test/3_5_2_3.txt", "test/4_5_5_5.txt"]
@@ -509,8 +489,9 @@ for fn in fns
         p = zeros(UInt8, n)
         for i in eachindex(h)
             hc = coords_to_compact_index(X[:, i], ms, n)
+            @test hc == h[i]
             if hc != h[i]
-                @test hc == h[i]
+                @show n, ms, i, h[i], hc, X[:, i]
                 break
             end
         end

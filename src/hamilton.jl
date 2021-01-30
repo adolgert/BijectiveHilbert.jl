@@ -163,6 +163,9 @@ function update2(l, t, w, n, e, d)
 end
 
 
+"""
+Algorithm.hpp: _coordsToIndex
+"""
 function hilbert_index_paper!(n, m, p, ds)
     T = UInt64
     h = zero(T)  # hilbert index
@@ -302,6 +305,9 @@ function extract_mask_paper(m::Vector, n, d, i)
 end
 
 
+"""
+From GrayCodeRank.hpp: compactIndex.
+"""
 function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
     hc = zero(T)
     hr = 0
@@ -312,8 +318,15 @@ function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
         j = ds[i + 1]
         while true
             if ms[j + 1] > i
-                if h & hm != 0 && hcr == 0
-                    hc |= hcm
+                if hr > 0
+                    error("hr on next rack")
+                end
+                if ((h & hm) != 0)
+                    if hcr == 0
+                        hc |= hcm
+                    else
+                        error("should only be one rack")
+                    end
                 end
                 hcm <<= 1
                 if hcm == 0
@@ -330,7 +343,7 @@ function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
                 hm = one(T)
                 hr += 1
             end
-            if j != ds[i + 1]
+            if j == ds[i + 1]
                 break
             end
         end
