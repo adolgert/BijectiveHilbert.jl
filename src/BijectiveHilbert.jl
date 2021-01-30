@@ -12,11 +12,13 @@ export GlobalGray
 export axis_type
 export encode_hilbert_zero
 export decode_hilbert_zero!
+
 include("hamilton.jl")
 export SpaceGray
 export Compact
-include("bijective.jl")
-include("hilbert.jl")
+
+# include("bijective.jl")
+include("simple2d.jl")
 import .Bijective: Simple2D
 export Simple2D
 
