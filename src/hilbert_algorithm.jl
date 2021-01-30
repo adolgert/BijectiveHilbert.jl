@@ -1,6 +1,4 @@
 
-abstract type HilbertAlgorithm{A,T} end
+abstract type HilbertAlgorithm{T} end
 
-
-axis_type(::HilbertAlgorithm{A,T}) where {A,T} = A
-index_type(::HilbertAlgorithm{A,T}) where {A,T} = T
+index_type(::HilbertAlgorithm{T}) where {T} = T

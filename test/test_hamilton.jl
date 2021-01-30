@@ -401,7 +401,7 @@ trials = [
 for trial in trials
     v = convert(Vector{UInt8}, trial[2:end])
     ms = [b, b, b, b]
-    gg = Compact(ms, n)
+    gg = Compact(ms)
     result = Int(encode_hilbert_zero(gg, v))
     @test result == trial[1]
 end
@@ -415,7 +415,7 @@ rng = MersenneTwister(432479874)
 for n = [5]
     for i in 1:1
         ms = rand(rng, 2:5, n)
-        gg = Compact(ms, n)
+        gg = Compact(ms)
         @test check_own_inverse(gg, ms, n)
     end
 end
@@ -434,7 +434,7 @@ for fn in fns
     if isfile(fn)
         h, X, ms = hamilton_example(fn)
         n = size(X, 1)
-        gg = Compact(ms, n)
+        gg = Compact(ms)
         p = zeros(axis_type(gg), n)
         H = index_type(gg)
         for i in eachindex(h)
@@ -458,7 +458,7 @@ for fn in fns
     if isfile(fn)
         h, X, ms = hamilton_example(fn)
         n = size(X, 1)
-        gg = Compact(ms, n)
+        gg = Compact(ms)
         H = index_type(gg)
         for i in eachindex(h)
             XX = convert(Vector{axis_type(gg)}, X[:, i])
@@ -481,7 +481,7 @@ rng = MersenneTwister(9742439)
 for i in 1:1000
     n = rand(rng, 3:5)
     ms = rand(rng, 2:7, n)
-    gg = Compact(Int,Int, ms)
+    gg = Compact(Int, ms)
     gg2 = Compact(ms)
     x = zeros(Int, n)
     A = axis_type(gg2)

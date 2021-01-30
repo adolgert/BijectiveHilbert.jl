@@ -28,13 +28,13 @@ end
 
 
 @safetestset brgc_equals_naive = "Gray code matches paper description" begin
-using BijectiveHilbert: brgc_inv_naive, brgc_inv
+using BijectiveHilbert: brgc_inv
 using Random
 rng = MersenneTwister(9719742)
-for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
+for T in [UInt8, UInt16, UInt32, UInt64]
     for trial in 1:10000
         v = rand(rng, T)
-        n = brgc_inv_naive(v)
+        n = brgc_inv(Int128(v))  # The paper version is used for integers.
         i = brgc_inv(v)
         @test n == i
     end
