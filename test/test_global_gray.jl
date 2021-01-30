@@ -43,7 +43,7 @@ t = UInt8[0b1100, 0b0110, 0b0011]
 b = 4
 n = length(t)
 h = BijectiveHilbert.interleave_transpose(t, b, n)
-h == 0b001011110100
+@test h == 0b001011110100
 end
 
 
@@ -56,7 +56,7 @@ X = zeros(UInt8, n)
 for h in 0:(1<<b - 1)
     BijectiveHilbert.outerleave_transpose!(X, UInt64(h), b, n)
     h2 = BijectiveHilbert.interleave_transpose(X, b, n)
-    @assert h == h2
+    @test h == h2
 end
 end
 
@@ -70,7 +70,7 @@ for i in 1:1000
     b = rand(rng, 2:8)
     gg = GlobalGray(b, n)
     AT = axis_type(gg)
-    TT = transpose_type(gg)
+    TT = index_type(gg)
     X = convert(Vector{AT}, rand(rng, 0:(1<<b - 1), n))
     X0 = copy(X)
     h = encode_hilbert_zero!(gg, X)
@@ -83,27 +83,34 @@ end
 @safetestset hilbert_one_diff = "GlobalGray values next to each other" begin
   using BijectiveHilbert
   xy = Set(Tuple{Int64, Int64}[])
-  last = [-1, 0]
-  n = 3
-  b = 5
+  n = 2
+  b = 6
+  if false
   gg = GlobalGray(b, n)
   A = axis_type(gg)
-  TT = transpose_type(gg)
+  TT = index_type(gg)
   X = zeros(A, n)
   Y = copy(X)
+  hh = UInt64(0)
   for h in 0:(1<<(n*b) - 1)
     decode_hilbert_zero!(gg, X, TT(h))
     tdiff = UInt64(0)
-    for cmp_idx in 1:n
-        if X[cmp_idx] > Y[cmp_idx]
-            tdiff += X[cmp_idx] - Y[cmp_idx]
-        else
-            tdiff += Y[cmp_idx] - X[cmp_idx]
+    if h > 0
+        for cmp_idx in 1:n
+            if X[cmp_idx] > Y[cmp_idx]
+                tdiff += X[cmp_idx] - Y[cmp_idx]
+            else
+                tdiff += Y[cmp_idx] - X[cmp_idx]
+            end
+        end
+        @test tdiff == 1
+        if tdiff > 1
+            @show h, X, hh, Y
+            break
         end
     end
-    if tdiff > 1
-        @show h, X, Y
-    end
     Y .= X
+    hh = h
+  end
   end
 end
