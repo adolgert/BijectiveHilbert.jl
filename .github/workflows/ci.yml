@@ -10,11 +10,16 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          - '1.4'
           - '1.5'
-          - 'nightly'
+          - '^1.6.0-0'
         os:
           - ubuntu-latest
-          - windows-latest
+        include:
+          - version: "1.5"
+            os: macOS-latest
+          - version: "1.5"
+            os: windows-latest
         arch:
           - x64
     steps:
