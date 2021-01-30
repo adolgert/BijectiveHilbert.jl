@@ -93,32 +93,39 @@ function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Unsigned}
 end
 
 
-struct GlobalGray{A,T} <: HilbertAlgorithm{A,T}
+struct GlobalGray{T} <: HilbertAlgorithm{T}
     b::Int
     n::Int
 end
 
 
+axis_type(gg::GlobalGray) = large_enough_unsigned(gg.b)
+
+
 function GlobalGray(b, n)
-    atype = large_enough_unsigned(b)
     ttype = large_enough_unsigned(b * n)
-    GlobalGray{atype, ttype}(b, n)
+    GlobalGray{ttype}(b, n)
 end
 
 
-function encode_hilbert_zero!(g::GlobalGray{A,T}, X::Vector{A})::T where {A,T}
+function GlobalGray(::Type{T}, b, n) where {T}
+    GlobalGray{T}(b, n)
+end
+
+
+function encode_hilbert_zero!(g::GlobalGray{T}, X::Vector)::T where {T}
     axes_to_transpose!(X, g.b, g.n)
     interleave_transpose(X, g.b, g.n)
 end
 
 
-function encode_hilbert_zero(g::GlobalGray{A,T}, X::Vector{A})::T where {A,T}
+function encode_hilbert_zero(g::GlobalGray{T}, X::Vector)::T where {T}
     Y = copy(X)
     encode_hilbert_zero(g, Y)
 end
 
 
-function decode_hilbert_zero!(g::GlobalGray{A,T}, X::Vector{A}, h::T) where {A,T}
+function decode_hilbert_zero!(g::GlobalGray{T}, X::Vector, h::T) where {T}
     outerleave_transpose!(X, h, g.b, g.n)
     transpose_to_axes!(X, g.b, g.n)
 end

@@ -39,10 +39,11 @@ function check_own_inverse(gg::HilbertAlgorithm, ms::Vector{Int}, n)
 end
 
 
-function check_complete_set(gg::HilbertAlgorithm{A,H}, b, n) where {A,H}
+function check_complete_set(gg::HilbertAlgorithm{H}, b, n) where {H}
 # Try a 4d hilbert curve.
 dim_cnt = n
 m = b
+A = axis_type(gg)
 success = true
 indices = Base.IteratorsMD.CartesianIndices(tuple(collect(1<<m for i in 1:dim_cnt)...))
 seen2 = Dict{H, Vector{A}}()

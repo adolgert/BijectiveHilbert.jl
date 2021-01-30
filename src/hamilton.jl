@@ -389,48 +389,58 @@ function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
 end
 
 
-struct SpaceGray{A,T} <: HilbertAlgorithm{A,T}
+struct SpaceGray{T} <: HilbertAlgorithm{T}
     b::Int
     n::Int
 end
 
 
+axis_type(gg::SpaceGray) = large_enough_unsigned(gg.b)
+
+
 function SpaceGray(b, n)
-    atype = large_enough_unsigned(b)
     ttype = large_enough_unsigned(b * n)
-    SpaceGray{atype, ttype}(b, n)
+    SpaceGray{ttype}(b, n)
 end
 
 
-function encode_hilbert_zero(g::SpaceGray{A,T}, X::Vector{A})::T where {A,T}
+function encode_hilbert_zero(g::SpaceGray{T}, X::Vector)::T where {T}
     hilbert_index_paper(T, g.n, g.b, X)
 end
 
 
-function decode_hilbert_zero!(g::SpaceGray{A,T}, X::Vector{A}, h::T) where {A,T}
+function decode_hilbert_zero!(g::SpaceGray{T}, X::Vector, h::T) where {T}
     hilbert_index_inv_paper!(T, g.n, g.b, h, X)
 end
 
 
-struct Compact{A,T} <: HilbertAlgorithm{A,T}
+struct Compact{T} <: HilbertAlgorithm{T}
     ms::Vector{Int}
     n::Int
 end
 
 
-function Compact(ms::Vector{Int}, n)
+axis_type(gg::Compact) = large_enough_unsigned(maximum(gg.ms))
+
+
+function Compact(ms::Vector{Int})
+    n = length(ms)
     b = maximum(ms)
-    atype = large_enough_unsigned(b)
     ttype = large_enough_unsigned(b * n)
-    Compact{atype, ttype}(ms, n)
+    Compact{ttype}(ms, n)
 end
 
 
-function encode_hilbert_zero(g::Compact{A,T}, X::Vector{A})::T where {A,T}
+function Compact(::Type{T}, ms::Vector{Int}) where {T}
+    Compact{T}(ms, length(ms))
+end
+
+
+function encode_hilbert_zero(g::Compact{T}, X::Vector)::T where {T}
     coords_to_compact_index(index_type(g), X, g.ms, g.n)
 end
 
 
-function decode_hilbert_zero!(g::Compact{A,T}, X::Vector{A}, h::T) where {A,T}
+function decode_hilbert_zero!(g::Compact{T}, X::Vector, h::T) where {T}
     compact_index_to_coords!(X, g.ms, g.n, h)
 end

@@ -103,7 +103,7 @@ returns also starts at one.
 
 See also: [`encode_hilbert_zero`](@ref).
 """
-encode_hilbert(x, y) = encode_hilbert_zero(x - 1, y - 1) + 1
+encode_hilbert(x::Integer, y::Integer) = encode_hilbert_zero(x - 1, y - 1) + 1
 
 
 """
@@ -111,7 +111,7 @@ encode_hilbert(x, y) = encode_hilbert_zero(x - 1, y - 1) + 1
 
 A 1-based Hilbert decode, from [`decode_hilbert_zero`](@ref).
 """
-function decode_hilbert(z)
+function decode_hilbert(z::Integer)
     x, y = decode_hilbert_zero(z - 1)
     x + 1, y + 1
 end

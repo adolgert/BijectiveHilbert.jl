@@ -182,3 +182,49 @@ using BijectiveHilbert: get_bits
         @test a == r
     end
 end
+
+
+@safetestset fsb_trials = "first_set_bit unsigned trials" begin
+using BijectiveHilbert: first_set_bit
+    trials = [
+        (0b0, 0),
+        (UInt64(0), 0),
+        (UInt32(0), 0),
+        (UInt16(0), 0),
+        (UInt8(0), 0),
+        (UInt64(1), 1),
+        (UInt32(1), 1),
+        (UInt16(1), 1),
+        (UInt8(1), 1),
+        (UInt128(0b1100), 3),
+        (UInt64(0b1100), 3),
+        (UInt32(0b1100), 3),
+        (UInt16(0b1100), 3),
+        (UInt8(0b1100), 3),
+        (0x80, 8),
+        (0x81, 1),
+        (0x82, 2),
+        (0x84, 3)
+    ]
+    for (v, i) in trials
+        r = first_set_bit(v)
+        @test r == i
+    end
+end
+
+
+@safetestset fsb_unsigned = "first_set_bit signed matches signed" begin
+using BijectiveHilbert: first_set_bit
+using Random
+trials = [Int8, Int16, Int32, Int64]
+rng = MersenneTwister(349720)
+for T in trials
+    for i in 1:100
+        v = rand(rng, T)
+        a = first_set_bit(v)
+        ui = parse(UInt64, "0b" * bitstring(v))
+        b = first_set_bit(ui)
+        @test a == b
+    end
+end
+end
