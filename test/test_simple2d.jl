@@ -30,7 +30,7 @@ end
 end
 
 
-@safetestset simple2d_complete_set = "simple2d is its own inverse" begin
+@safetestset simple2d_complete_set = "simple2d is a complete set" begin
   using BijectiveHilbert: Simple2D, check_complete_set
   gg = Simple2D(Int)
   for b in 2:7

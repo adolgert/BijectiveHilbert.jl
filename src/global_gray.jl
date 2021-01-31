@@ -15,24 +15,24 @@ function transpose_to_axes!(X::Vector{T}, b, n) where {T <: Unsigned}
     N = T(2) << (b - 1)
     # Gray decode by H^(H/2)
     t = X[n] >> 1
-    for i = n:-1:2
-        X[i] ⊻= X[i - 1]
+    for io = n:-1:2
+        X[io] ⊻= X[io - 1]
     end
     X[1] ⊻= t
     # Undo excess work
     Q = T(2)
     while Q != N
         P = Q - one(T)
-        for i = n:-1:1
-            if (X[i] & Q) != zero(T)  # invert
-                X[1] ⊻= P
+        for jo = n:-1:1
+            if (X[jo] & Q) != zero(T)
+                X[1] ⊻= P  # invert
             else  # exchange
-                t = (X[1] ⊻ X[i]) & P
+                t = (X[1] ⊻ X[jo]) & P
                 X[1] ⊻= t
-                X[i] ⊻= t
+                X[jo] ⊻= t
             end
         end
-        Q <<= one(T)
+        Q <<= 1
     end
 end
 
@@ -43,20 +43,20 @@ function axes_to_transpose!(X::Vector{T}, b, n) where {T <: Unsigned}
     Q = M
     while Q > one(T)
         P = Q - one(T)
-        for i = 1:n
-            if (X[i] & Q) != zero(T)
+        for io = 1:n
+            if (X[io] & Q) != zero(T)
                 X[1] ⊻= P
             else
-                t = (X[1] ⊻ X[i]) & P
+                t = (X[1] ⊻ X[io]) & P
                 X[1] ⊻= t
-                X[i] ⊻= t
+                X[io] ⊻= t
             end
         end
-        Q >>= one(T)
+        Q >>= 1
     end
     # Gray encode
-    for i = 2:n
-        X[i] ⊻= X[i - 1]
+    for jo = 2:n
+        X[jo] ⊻= X[jo - 1]
     end
     t2 = zero(T)
     Q = M
@@ -66,14 +66,48 @@ function axes_to_transpose!(X::Vector{T}, b, n) where {T <: Unsigned}
         end
         Q >>= one(T)
     end
-    for i = 1:n
-        X[i] ⊻= t2
+    for ko = 1:n
+        X[ko] ⊻= t2
+    end
+end
+
+"""
+Takes a vector of length `n` and places the bits of all `n` integers
+into a single integer. The vector's 1st component is the most significant bit.
+"""
+function interleave_transpose(::Type{T}, X::Vector, b, n) where {T}
+    h = zero(T)
+    for i in 0:(b - 1)
+        for d in 1:n
+            ith_bit = (X[d] & (1<<i)) >> i
+            h |= ith_bit << (i * n + n - d)
+        end
+    end
+    h
+end
+
+
+"""
+Takes a single integer and places its values into components of a vector,
+bit-by-bit.
+"""
+function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Integer}
+    X .= zero(T)
+    for i in 0:(b-1)
+        for d in 1:n
+            ith_bit = (h & (1 << (i * n + n - d))) >> (i * n + n - d)
+            X[d] |= ith_bit << i
+        end
     end
 end
 
 
-function interleave_transpose(X::Vector{T}, b, n) where {T <: Unsigned}
-    h = zero(UInt64)
+"""
+Takes a vector of length `n` and places the bits of all `n` integers
+into a single integer. The vector's 1st component is the least significant bit.
+"""
+function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
+    h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
             h |= ((X[d] & (1<<i))) << (i*(n - 1) + d - 1)
@@ -83,7 +117,7 @@ function interleave_transpose(X::Vector{T}, b, n) where {T <: Unsigned}
 end
 
 
-function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Unsigned}
+function outerleave_transpose_low!(X::Vector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
     for i in 0:(b-1)
         for d in 1:n
@@ -115,7 +149,7 @@ end
 
 function encode_hilbert_zero!(g::GlobalGray{T}, X::Vector)::T where {T}
     axes_to_transpose!(X, g.b, g.n)
-    interleave_transpose(X, g.b, g.n)
+    interleave_transpose(T, X, g.b, g.n)
 end
 
 

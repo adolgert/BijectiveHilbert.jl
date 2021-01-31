@@ -42,8 +42,8 @@ using BijectiveHilbert
 t = UInt8[0b1100, 0b0110, 0b0011]
 b = 4
 n = length(t)
-h = BijectiveHilbert.interleave_transpose(t, b, n)
-@test h == 0b001011110100
+h = BijectiveHilbert.interleave_transpose(UInt64, t, b, n)
+@test h == 0b100110011001
 end
 
 
@@ -53,9 +53,9 @@ using BijectiveHilbert
 n = 3
 b = 4
 X = zeros(UInt8, n)
-for h in 0:(1<<b - 1)
+for h in 0:(1<<(n*b) - 1)
     BijectiveHilbert.outerleave_transpose!(X, UInt64(h), b, n)
-    h2 = BijectiveHilbert.interleave_transpose(X, b, n)
+    h2 = BijectiveHilbert.interleave_transpose(UInt64, X, b, n)
     @test h == h2
 end
 end
@@ -81,36 +81,53 @@ end
 
 
 @safetestset hilbert_one_diff = "GlobalGray values next to each other" begin
-  using BijectiveHilbert
-  xy = Set(Tuple{Int64, Int64}[])
-  n = 2
-  b = 6
-  if false
-  gg = GlobalGray(b, n)
-  A = axis_type(gg)
-  TT = index_type(gg)
-  X = zeros(A, n)
-  Y = copy(X)
-  hh = UInt64(0)
-  for h in 0:(1<<(n*b) - 1)
-    decode_hilbert_zero!(gg, X, TT(h))
-    tdiff = UInt64(0)
-    if h > 0
-        for cmp_idx in 1:n
-            if X[cmp_idx] > Y[cmp_idx]
-                tdiff += X[cmp_idx] - Y[cmp_idx]
-            else
-                tdiff += Y[cmp_idx] - X[cmp_idx]
-            end
-        end
-        @test tdiff == 1
-        if tdiff > 1
-            @show h, X, hh, Y
-            break
+using BijectiveHilbert: GlobalGray, check_complete_set
+n = 3
+b = 4
+gg = GlobalGray(b, n)
+@test check_complete_set(gg, b, n)
+end
+
+
+@safetestset globalgray_against_file = "globalgray agrees with C code" begin
+function read_skill(fn)
+    lines = readlines(fn)
+    xyz = zeros(Int, 3, length(lines))
+    hh = zeros(Int, 3, length(lines))
+    idx = 0
+    for ll in lines
+        axmatch = r"^\((\d+), (\d+), (\d+)\)"
+        hmatch = r"\) \((\d+), (\d+), (\d+)\)"
+        if occursin(axmatch, ll)
+            idx += 1
+            mm = match(axmatch, ll)
+            xyz[:, idx] = parse.(Int, mm.captures)
+            hh[:, idx] = parse.(Int, match(hmatch, ll).captures)
         end
     end
-    Y .= X
-    hh = h
-  end
-  end
+    return xyz, hh
+end
+
+fn = "test/skill3_4_4_4.txt"
+if !isfile(fn)
+    fn = basename(fn)
+end
+if isfile(fn)
+    xyz, hh = read_skill(fn)
+
+using BijectiveHilbert
+for check_idx in 1:size(xyz, 2)
+    ax = convert(Vector{UInt8}, xyz[:, check_idx])
+    h = convert(Vector{UInt8}, hh[:, check_idx])
+    BijectiveHilbert.axes_to_transpose!(ax, 4, 3)
+    @test ax == h
+end
+
+for check_idx in 1:size(xyz, 2)
+    ax = convert(Vector{UInt8}, xyz[:, check_idx])
+    h = convert(Vector{UInt8}, hh[:, check_idx])
+    BijectiveHilbert.transpose_to_axes!(h, 4, 3)
+    @test h == ax
+end
+end
 end
