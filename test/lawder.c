@@ -212,7 +212,7 @@ Hcode H_encode(Point pt)
             T = calc_T(P);
             tT = calc_tS_tT(xJ, T);
             J = calc_J(P);
-            xJ += J - 1;
+            xJ += J - one(A);
         }
     }
     return h;
