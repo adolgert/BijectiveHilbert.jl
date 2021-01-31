@@ -1,219 +1,327 @@
 /*
-"Calculation of Mappings Between One and n-dimensional Values
-Using the Hilbert Space-filling Curve", by J K Lawder.
-Technical Report JL1/00, Aug 15, 2000. School of Computer Science
-and Information Systems, Birkbeck College, University of London, UK.
+ * copyright J.K.Lawder 2002 
+ *
+ * Functions for calculating the Hilbert Curve sequence number of a point
+ * and the inverse operation. Applies to the '32nd order' Hilbert Curve.
+ *
+ * For further information see :
+ * Calculation of Mappings Between One and n-dimensional Values Using the
+ * Hilbert Space-filling Curve. Research Report BBKCS-00-01
+ * http://www.dcs.bbk.ac.uk/~jkl/publications.html
+ *
+ * last changed 17.1.2002
+ */
 
-This code assumes the following:
-The macro ORDER corresponds to the order of curve and is 32,
-thus coordinates of points are 32 bit values.
-A U_int should be a 32 bit unsigned integer.
-The macro DIM corresponds to the number of dimensions in a
-space.
-The derived-key of a Point is stored in an Hcode which is an
-array of U_int. The bottom bit of a derived-key is held in the
-bottom bit of the hcode[0] element of an Hcode and the top bit
-of a derived-key is held in the top bit of the hcode[DIM-1]
-element of and Hcode.
-g_mask is a global array of masks which helps simplyfy some
-calculations - it has DIM elements. In each element, only one
-bit is zeo valued - the top bit in element no. 0 and the bottom
-bit in element no. (DIM - 1). eg.
-#if DIM == 5 const U_int g_mask[] = {16, 8, 4, 2, 1}; #endif
-#if DIM == 6 const U_int g_mask[] = {32, 16, 8, 4, 2, 1}; #endif
-etc...
-*/
-#define DIM 3
+#include <stdio.h>
+#include <stdlib.h>
+
+/*
+ * 'DIM' is the number of dimensions in space through which the
+ * Hilbert Curve passes.
+ * Don't use this implementation with values for DIM of > 31! 
+ * Also, make sure you use a 32 bit compiler!
+ */
+#define	DIM 3
+
 typedef unsigned int U_int;
-#define ORDER 32
 
-typedef struct
-{
-    U_int hcode[DIM];
-} Hcode;
+/*
+ * An Hcode holds the Hilbert Curve sequence number of a point as an array
+ * of unsigned ints. The least significant bit of hcode[0] is the least
+ * significant bit of the sequence number.
+ */
+typedef struct {
+	U_int	hcode[DIM];
+}Hcode;
+
 typedef Hcode Point;
 
-/*===========================================================*/
-/* calc_P */
-/*===========================================================*/
-U_int calc_P(int i, Hcode H)
+/*
+ * g_mask can be omitted...
+ * g_mask[x] can be replaced by (1 << DIM - 1 - x)
+ */
+const U_int g_mask[] = {4, 2, 1};
+
+/*
+ * retained for historical reasons: the number of bits in an attribute value:
+ * effectively the order of a curve
+ */
+#define		NUMBITS			32
+
+/*
+ * the number of bits in a word used to store an hcode (or in an element of
+ * an array that's used)
+ */
+#define		WORDBITS		32
+
+
+/*============================================================================*/
+/*                            H_encode					      */
+/*============================================================================*/
+/*
+ * given the coordinates of a point, it finds the sequence number of the point
+ * on the Hilbert Curve
+ */
+Hcode H_encode(Point p)
 {
-    int element;
-    U_int P, temp1, temp2;
-    element = i / ORDER;
-    P = H.hcode[element];
-    if (i % ORDER > ORDER - DIM)
-    {
-        temp1 = H.hcode[element + 1];
-        P >>= i % ORDER;
-        temp1 <<= ORDER - i % ORDER;
-        P |= temp1;
-    }
-    else
-        P >>= i % ORDER; /* P is a DIM bit hcode */
-/* the & masks out spurious highbit values */
-#if DIM < ORDER
-    P &= (1 << DIM) - 1;
-#endif
-    return P;
+	U_int	mask = (U_int)1 << WORDBITS - 1, element, temp1, temp2,
+		A, W = 0, S, tS, T, tT, J, P = 0, xJ;
+	Hcode	h = {0};
+	int	i = NUMBITS * DIM - DIM, j;
+
+	for (j = A = 0; j < DIM; j++)
+		if (p.hcode[j] & mask)
+			A |= g_mask[j];
+
+	S = tS = A;
+
+	P |= S & g_mask[0];
+	for (j = 1; j < DIM; j++)
+		if( S & g_mask[j] ^ (P >> 1) & g_mask[j])
+			P |= g_mask[j];
+
+	/* add in DIM bits to hcode */
+	element = i / WORDBITS;
+	if (i % WORDBITS > WORDBITS - DIM)
+	{
+		h.hcode[element] |= P << i % WORDBITS;
+		h.hcode[element + 1] |= P >> WORDBITS - i % WORDBITS;
+	}
+	else
+		h.hcode[element] |= P << i - element * WORDBITS;
+
+	J = DIM;
+	for (j = 1; j < DIM; j++)
+		if ((P >> j & 1) == (P & 1))
+			continue;
+		else
+			break;
+	if (j != DIM)
+		J -= j;
+	xJ = J - 1;
+
+	if (P < 3)
+		T = 0;
+	else
+		if (P % 2)
+			T = (P - 1) ^ (P - 1) / 2;
+		else
+			T = (P - 2) ^ (P - 2) / 2;
+	tT = T;
+
+	for (i -= DIM, mask >>= 1; i >=0; i -= DIM, mask >>= 1)
+	{
+		for (j = A = 0; j < DIM; j++)
+			if (p.hcode[j] & mask)
+				A |= g_mask[j];
+
+		W ^= tT;
+		tS = A ^ W;
+		if (xJ % DIM != 0)
+		{
+			temp1 = tS << xJ % DIM;
+			temp2 = tS >> DIM - xJ % DIM;
+			S = temp1 | temp2;
+			S &= ((U_int)1 << DIM) - 1;
+		}
+		else
+			S = tS;
+
+		P = S & g_mask[0];
+		for (j = 1; j < DIM; j++)
+			if( S & g_mask[j] ^ (P >> 1) & g_mask[j])
+				P |= g_mask[j];
+
+		/* add in DIM bits to hcode */
+		element = i / WORDBITS;
+		if (i % WORDBITS > WORDBITS - DIM)
+		{
+			h.hcode[element] |= P << i % WORDBITS;
+			h.hcode[element + 1] |= P >> WORDBITS - i % WORDBITS;
+		}
+		else
+			h.hcode[element] |= P << i - element * WORDBITS;
+
+		if (i > 0)
+		{
+			if (P < 3)
+				T = 0;
+			else
+				if (P % 2)
+					T = (P - 1) ^ (P - 1) / 2;
+				else
+					T = (P - 2) ^ (P - 2) / 2;
+
+			if (xJ % DIM != 0)
+			{
+				temp1 = T >> xJ % DIM;
+				temp2 = T << DIM - xJ % DIM;
+				tT = temp1 | temp2;
+				tT &= ((U_int)1 << DIM) - 1;
+			}
+			else
+				tT = T;
+
+			J = DIM;
+			for (j = 1; j < DIM; j++)
+				if ((P >> j & 1) == (P & 1))
+					continue;
+				else
+					break;
+			if (j != DIM)
+				J -= j;
+
+			xJ += J - 1;
+		/*	J %= DIM;*/
+		}
+	}
+	return h;
 }
 
-/*===========================================================*/
-/* calc_P2 */
-/*===========================================================*/
-U_int calc_P2(U_int S)
+/*============================================================================*/
+/*                            H_decode					      */
+/*============================================================================*/
+/*
+ * given the sequence number of a point, it finds the coordinates of the point
+ * on the Hilbert Curve
+ */
+Point H_decode (Hcode H)
 {
-    int i;
-    U_int P;
-    P = S & g_mask[0];
-    for (i = 1; i < DIM; i++)
-        if (S & g_mask[i] ^ (P >> 1) & g_mask[i])
-            P |= g_mask[i];
-    return P;
-}
+	U_int	mask = (U_int)1 << WORDBITS - 1, element, temp1, temp2,
+		A, W = 0, S, tS, T, tT, J, P = 0, xJ;
+	Point	pt = {0};
+	int	i = NUMBITS * DIM - DIM, j;
 
-/*===========================================================*/
-/* calc_J */
-/*===========================================================*/
-U_int calc_J(U_int P)
-{
-    int i;
-    U_int J;
-    J = DIM;
-    for (i = 1; i < DIM; i++)
-        if ((P >> i & 1) == (P & 1))
-            continue;
-        else
-            break;
-    if (i != DIM)
-        J -= i;
-    return J;
-}
 
-/*===========================================================*/
-/* calc_T */
-/*===========================================================*/
-U_int calc_T(U_int P)
-{
-    if (P < 3)
-        return 0;
-    if (P % 2)
-        return (P - 1) ^ (P - 1) / 2;
-    return (P - 2) ^ (P - 2) / 2;
-}
+	/*--- P ---*/
+	element = i / WORDBITS;
+	P = H.hcode[element];
+	if (i % WORDBITS > WORDBITS - DIM)
+	{
+		temp1 = H.hcode[element + 1];
+		P >>= i % WORDBITS;
+		temp1 <<= WORDBITS - i % WORDBITS;
+		P |= temp1;
+	}
+	else
+		P >>= i % WORDBITS;	/* P is a DIM bit hcode */
 
-/*===========================================================*/
-/* calc_tS_tT */
-/*===========================================================*/
-U_int calc_tS_tT(U_int xJ, U_int val)
-{
-    U_int retval, temp1, temp2;
-    retval = val;
-    if (xJ % DIM != 0)
-    {
-        temp1 = val >> xJ % DIM;
-        temp2 = val << DIM - xJ % DIM;
-        retval = temp1 | temp2;
-        retval &= ((U_int)1 << DIM) - 1;
-    }
-    return retval;
-}
+	/* the & masks out spurious highbit values */
+	#if DIM < WORDBITS
+		P &= (1 << DIM) -1;
+	#endif
 
-/*===========================================================*/
-/* H_decode */
-/*===========================================================*/
-/* For mapping from one dimension to DIM dimensions */
-Point H_decode(Hcode H)
-{
-    U_int mask = (U_int)1 << ORDER - 1,
-          A, W = 0, S, tS, T, tT, J, P = 0, xJ;
-    Point pt = {0};
-    int i = ORDER * DIM - DIM, j;
-    P = calc_P(i, H);
-    J = calc_J(P);
-    xJ = J - 1;
-    A = S = tS = P ^ P / 2;
-    T = calc_T(P);
-    tT = T;
-    /*--- distrib bits to coords ---*/
-    for (j = DIM - 1; P > 0; P >>= 1, j--)
-        if (P & 1)
-            pt.hcode[j] |= mask;
-    for (i -= DIM, mask >>= 1; i >= 0; i -= DIM, mask >>= 1)
-    {
-        P = calc_P(i, H);
-        S = P ^ P / 2;
-        tS = calc_tS_tT(xJ, S);
-        W ^= tT;
-        A = W ^ tS;
-        /*--- distrib bits to coords ---*/
-        for (j = DIM - 1; A > 0; A >>= 1, j--)
-            if (A & 1)
-                pt.hcode[j] |= mask;
-        if (i > 0)
-        {
-            T = calc_T(P);
-            tT = calc_tS_tT(xJ, T);
-            J = calc_J(P);
-            xJ += J - 1;
-        }
-    }
-    return pt;
-}
+	/*--- xJ ---*/
+	J = DIM;
+	for (j = 1; j < DIM; j++)
+		if ((P >> j & 1) == (P & 1))
+			continue;
+		else
+			break;
+	if (j != DIM)
+		J -= j;
+	xJ = J - 1;
 
-/*===========================================================*/
-/* H_encode */
-/*===========================================================*/
-/* For mapping from DIM dimensions to one dimension */
-Hcode H_encode(Point pt)
-{
-    U_int mask = (U_int)1 << ORDER - 1, element,
-          A, W = 0, S, tS, T, tT, J, P = 0, xJ;
-    Hcode h = {0};
-    int i = ORDER * DIM - DIM, j;
-    for (j = A = 0; j < DIM; j++)
-        if (pt.hcode[j] & mask)
-            A |= g_mask[j];
-    S = tS = A;
-    P = calc_P2(S);
-    /* add in DIM bits to hcode */
-    element = i / ORDER;
-    if (i % ORDER > ORDER - DIM)
-    {
-        h.hcode[element] |= P << i % ORDER;
-        h.hcode[element + 1] |= P >> ORDER - i % ORDER;
-    }
-    else
-        h.hcode[element] |= P << i - element * ORDER;
-    J = calc_J(P);
-    xJ = J - 1;
-    T = calc_T(P);
-    tT = T;
-    for (i -= DIM, mask >>= 1; i >= 0; i -= DIM, mask >>= 1)
-    {
-        for (j = A = 0; j < DIM; j++)
-            if (pt.hcode[j] & mask)
-                A |= g_mask[j];
-        W ^= tT;
-        tS = A ^ W;
-        S = calc_tS_tT(xJ, tS);
-        P = calc_P2(S);
-        /* add in DIM bits to hcode */
-        element = i / ORDER;
-        if (i % ORDER > ORDER - DIM)
-        {
-            h.hcode[element] |= P << i % ORDER;
-            h.hcode[element + 1] |= P >> ORDER - i % ORDER;
-        }
-        else
-            h.hcode[element] |= P << i - element * ORDER;
-        if (i > 0)
-        {
-            T = calc_T(P);
-            tT = calc_tS_tT(xJ, T);
-            J = calc_J(P);
-            xJ += J - one(A);
-        }
-    }
-    return h;
+	/*--- S, tS, A ---*/
+	A = S = tS = P ^ P / 2;
+
+
+	/*--- T ---*/
+	if (P < 3)
+		T = 0;
+	else
+		if (P % 2)
+			T = (P - 1) ^ (P - 1) / 2;
+		else
+			T = (P - 2) ^ (P - 2) / 2;
+
+	/*--- tT ---*/
+	tT = T;
+
+	/*--- distrib bits to coords ---*/
+	for (j = DIM - 1; P > 0; P >>=1, j--)
+		if (P & 1)
+			pt.hcode[j] |= mask;
+
+
+	for (i -= DIM, mask >>= 1; i >=0; i -= DIM, mask >>= 1)
+	{
+		/*--- P ---*/
+		element = i / WORDBITS;
+		P = H.hcode[element];
+		if (i % WORDBITS > WORDBITS - DIM)
+		{
+			temp1 = H.hcode[element + 1];
+			P >>= i % WORDBITS;
+			temp1 <<= WORDBITS - i % WORDBITS;
+			P |= temp1;
+		}
+		else
+			P >>= i % WORDBITS;	/* P is a DIM bit hcode */
+
+		/* the & masks out spurious highbit values */
+		#if DIM < WORDBITS
+			P &= (1 << DIM) -1;
+		#endif
+
+		/*--- S ---*/
+		S = P ^ P / 2;
+
+		/*--- tS ---*/
+		if (xJ % DIM != 0)
+		{
+			temp1 = S >> xJ % DIM;
+			temp2 = S << DIM - xJ % DIM;
+			tS = temp1 | temp2;
+			tS &= ((U_int)1 << DIM) - 1;
+		}
+		else
+			tS = S;
+
+		/*--- W ---*/
+		W ^= tT;
+
+		/*--- A ---*/
+		A = W ^ tS;
+
+		/*--- distrib bits to coords ---*/
+		for (j = DIM - 1; A > 0; A >>=1, j--)
+			if (A & 1)
+				pt.hcode[j] |= mask;
+
+		if (i > 0)
+		{
+			/*--- T ---*/
+			if (P < 3)
+				T = 0;
+			else
+				if (P % 2)
+					T = (P - 1) ^ (P - 1) / 2;
+				else
+					T = (P - 2) ^ (P - 2) / 2;
+
+			/*--- tT ---*/
+			if (xJ % DIM != 0)
+			{
+				temp1 = T >> xJ % DIM;
+				temp2 = T << DIM - xJ % DIM;
+				tT = temp1 | temp2;
+				tT &= ((U_int)1 << DIM) - 1;
+			}
+			else
+				tT = T;
+
+			/*--- xJ ---*/
+			J = DIM;
+			for (j = 1; j < DIM; j++)
+				if ((P >> j & 1) == (P & 1))
+					continue;
+				else
+					break;
+			if (j != DIM)
+				J -= j;
+			xJ += J - 1;
+		}
+	}
+	return pt;
 }

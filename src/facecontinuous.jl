@@ -1,6 +1,8 @@
 """
 This is the Butz algorithm, as presented by Lawder. Haverkort2017
 says it is face continuous. The code is in lawder.c.
+The original paper had an error, and Lawder put a correction on his website.
+http://www.dcs.bbk.ac.uk/~jkl/publications.html
 """
 struct FaceContinuous{T} <: HilbertAlgorithm{T}
     b::Int
@@ -109,6 +111,7 @@ end
 
 
 function H_decode!(gg::FaceContinuous, H::Vector{A}, pt::Vector{A}) where {A}
+    wordbits = 8 * sizeof(A)
     mask = one(A) << (gg.b - 1)
     W = zero(A)
     pt .= zero(A)
@@ -158,7 +161,8 @@ end
 
 
 function H_encode!(gg::FaceContinuous, pt::Vector{A}, h::Vector{A}) where {A}
-    mask = one(A) << (gg.b - 1)
+    wordbits = 8 * sizeof(A)
+    mask = one(A) << (wordbits - 1)
     W = zero(A)
     P = zero(A)
     h .= zero(A)
@@ -171,42 +175,106 @@ function H_encode!(gg::FaceContinuous, pt::Vector{A}, h::Vector{A}) where {A}
     end
     tS = A1
     S = A1
-    P = calc_P2(gg, S)
-    elementz = i ÷ gg.b
-    if (i % gg.b) > (gg.b - gg.n)
-        h[elementz + 1] |= (P << (i % gg.b))
-        h[elementz + 2] |= P >> (gg.b - (i % gg.b))
-    else
-        h[elementz + 1] |= (P << (i - elementz * gg.b))
+    P |= (S & g_mask(A, gg.n, 0))
+    for jz = 1:(gg.n - 1)
+        gm = g_mask(A, gg.n, j)
+        if ((S & gm) ⊻ ((P >> 1) & gm)) != 0
+            P |= gm
+        end
     end
-    J = calc_J(gg, P)
-    xJ = J - one(A)
-    T = calc_T(P)
+
+    elementz = i ÷ wordbits
+    if (i % wordbits) > (wordbits - gg.n)
+        h[elementz + 1] |= (P << (i % wordbits))
+        h[elementz + 2] |= P >> (wordbits - (i % wordbits))
+    else
+        h[elementz + 1] |= (P << (i - elementz * wordbits))
+    end
+    J = gg.n
+    j = 1
+    while j < gg.n
+        if ((P >> j) & one(A)) != (P & one(A))
+            break
+        end
+        j += 1
+    end
+    if j != gg.n
+        J -= A(j)
+    end
+    if P < A(3)
+        T = 0
+    else
+        if (P % 2) != 0
+            T = (P - one(A)) ⊻ ((P - one(A)) << 1)
+        else
+            T = (P - A(2)) ⊻ ((P - A(2)) << 1)
+        end
+    end
     tT = T
     i -= gg.n
     mask >>= 1
     while i >= 0
         A1 = zero(A)
-        for jo = 1:gg.n
-            if pt[jo] & mask != zero(A)
-                A1 |= g_mask(A, gg.n, jo - 1)
+        for jz = 0:(gg.n - 1)
+            if pt[jz + 1] & mask != zero(A)
+                A1 |= g_mask(A, gg.n, jz)
             end
         end
         W ⊻= tT
         tS = A1 ⊻ W
-        S = calc_tS_tT(gg, xJ, tS)
-        P = calc_P2(gg, S)
-        elementz = i ÷ gg.b
-        if (i % gg.b) > (gg.b - gg.n)
-            h[elementz + 1] |= (P << (i % gg.b))
-            h[elementz + 2] |= (P >> (gg.b - (i % gg.b)))
+        if xJ % gg.n != 0
+            temp1 = tS << (xJ % gg.n)
+            temp2 = tS >> (gg.n - (xJ % gg.n))
+            S = temp1 | temp2
+            S &= (one(A) << gg.n) - one(A)
         else
-            h[elementz + 1] |= P << (i - elementz * gg.b)
+            S = tS
+        end
+
+        P = S & g_mask(A, gg.n, 0)
+        for jz = 1:(gg.n - 1)
+            gn = g_mask(A, gg.n, j)
+            if ((S & gn) ⊻ ((P >> 1) & gn)) != 0
+                P |= gn
+            end
+        end
+        elementz = i ÷ wordbits
+        if (i % wordbits) > (wordbits - gg.n)
+            h[elementz + 1] |= (P << (i % wordbits))
+            h[elementz + 2] |= (P >> (wordbits - (i % wordbits)))
+        else
+            h[elementz + 1] |= P << (i - elementz * wordbits)
         end
         if i > 0
-            T = calc_T(P)
-            tT = calc_tS_tT(gg, xJ, T)
-            J = calc_J(gg, P)
+            if P < 3
+                T = 0
+            else
+                if P % 2 != 0
+                    T = (P - one(A)) ⊻ ((P - 1) << 1)
+                else
+                    T = (P - A(2)) ⊻ ((P - A(2)) << 1)
+                end
+            end
+            if xJ % gg.n != 0
+                temp1 = T << (xJ % gg.n)
+                temp2 = T >> (gg.n - (xJ % gg.n))
+                S = temp1 | temp2
+                S &= (one(A) << gg.n) - one(A)
+            else
+                tT = T
+            end
+
+            J = gg.n
+            j = 1
+            while j < gg.n
+                if ((P >> j) & one(A)) != (P & one(A))
+                    break
+                end
+                j += 1
+            end
+            if j != gg.n
+                J -= A(j)
+            end
             xJ += J - one(A)
         end
 
