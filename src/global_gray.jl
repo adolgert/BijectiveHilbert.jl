@@ -75,8 +75,8 @@ end
 Takes a vector of length `n` and places the bits of all `n` integers
 into a single integer. The vector's 1st component is the most significant bit.
 """
-function interleave_transpose(X::Vector{T}, b, n) where {T <: Integer}
-    h = zero(UInt64)
+function interleave_transpose(::Type{T}, X::Vector, b, n) where {T}
+    h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
             ith_bit = (X[d] & (1<<i)) >> i
@@ -106,8 +106,8 @@ end
 Takes a vector of length `n` and places the bits of all `n` integers
 into a single integer. The vector's 1st component is the least significant bit.
 """
-function interleave_transpose_low(X::Vector{T}, b, n) where {T <: Integer}
-    h = zero(UInt64)
+function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
+    h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
             h |= ((X[d] & (1<<i))) << (i*(n - 1) + d - 1)
@@ -149,7 +149,7 @@ end
 
 function encode_hilbert_zero!(g::GlobalGray{T}, X::Vector)::T where {T}
     axes_to_transpose!(X, g.b, g.n)
-    interleave_transpose(X, g.b, g.n)
+    interleave_transpose(T, X, g.b, g.n)
 end
 
 
