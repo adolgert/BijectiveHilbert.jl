@@ -89,7 +89,7 @@ gg = GlobalGray(b, n)
 end
 
 
-@safetestset simple2d_against_file = "simple2d agrees with C code" begin
+@safetestset globalgray_against_file = "globalgray agrees with C code" begin
 function read_skill(fn)
     lines = readlines(fn)
     xyz = zeros(Int, 3, length(lines))
@@ -114,7 +114,6 @@ if !isfile(fn)
 end
 if isfile(fn)
     xyz, hh = read_skill(fn)
-end
 
 using BijectiveHilbert
 for check_idx in 1:size(xyz, 2)
@@ -129,5 +128,6 @@ for check_idx in 1:size(xyz, 2)
     h = convert(Vector{UInt8}, hh[:, check_idx])
     BijectiveHilbert.transpose_to_axes!(h, 4, 3)
     @test h == ax
+end
 end
 end
