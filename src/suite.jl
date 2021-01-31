@@ -66,6 +66,7 @@ for ihidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
     hidx = H(ihidx)
     differ = seen2[hidx] .!= seen2[hidx + one(H)]
     if sum(differ) != 1
+        @show ihidx, seen2[hidx], seen2[hidx + one(H)]
         success = false
     end
     if sum(differ) == 1
