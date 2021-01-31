@@ -72,22 +72,30 @@ function axes_to_transpose!(X::Vector{T}, b, n) where {T <: Unsigned}
 end
 
 
-function interleave_transpose(X::Vector{T}, b, n) where {T <: Unsigned}
-    h = zero(UInt64)
+"""
+Takes the vector `X` of size `n` with up to `b` bits in each value,
+and creates a single value of type `T` with those bits interleaved.
+"""
+function interleave_transpose(::Type{T}, X::Vector{A}, b, n) where {A, T}
+    h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
-            h |= ((X[d] & (1<<i))) << (i*(n - 1) + d - 1)
+            h |= ((X[d] & (one(T)<<i))) << (i*(n - 1) + d - 1)
         end
     end
     h
 end
 
 
-function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Unsigned}
-    X .= zero(T)
+"""
+Takes a single value `h` of type `T` and reads its bits into a vector `X`
+such that each of the `n` members of `X` has `b` bits.
+"""
+function outerleave_transpose!(::Type{T}, X::Vector{A}, h::T, b, n) where {A, T}
+    X .= zero(A)
     for i in 0:(b-1)
         for d in 1:n
-            X[d] |= (h & (1 << (i * n + d - 1))) >> (i * (n - 1) + d - 1)
+            X[d] |= (h & (one(T) << (i * n + d - 1))) >> (i * (n - 1) + d - 1)
         end
     end
 end
@@ -115,7 +123,7 @@ end
 
 function encode_hilbert_zero!(g::GlobalGray{T}, X::Vector)::T where {T}
     axes_to_transpose!(X, g.b, g.n)
-    interleave_transpose(X, g.b, g.n)
+    interleave_transpose(T, X, g.b, g.n)
 end
 
 
@@ -126,6 +134,6 @@ end
 
 
 function decode_hilbert_zero!(g::GlobalGray{T}, X::Vector, h::T) where {T}
-    outerleave_transpose!(X, h, g.b, g.n)
+    outerleave_transpose!(T, X, h, g.b, g.n)
     transpose_to_axes!(X, g.b, g.n)
 end

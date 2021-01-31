@@ -42,7 +42,7 @@ using BijectiveHilbert
 t = UInt8[0b1100, 0b0110, 0b0011]
 b = 4
 n = length(t)
-h = BijectiveHilbert.interleave_transpose(t, b, n)
+h = BijectiveHilbert.interleave_transpose(UInt64, t, b, n)
 @test h == 0b001011110100
 end
 
@@ -54,8 +54,8 @@ n = 3
 b = 4
 X = zeros(UInt8, n)
 for h in 0:(1<<b - 1)
-    BijectiveHilbert.outerleave_transpose!(X, UInt64(h), b, n)
-    h2 = BijectiveHilbert.interleave_transpose(X, b, n)
+    BijectiveHilbert.outerleave_transpose!(UInt64, X, UInt64(h), b, n)
+    h2 = BijectiveHilbert.interleave_transpose(UInt64, X, b, n)
     @test h == h2
 end
 end

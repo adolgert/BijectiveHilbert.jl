@@ -22,5 +22,8 @@ include("simple2d.jl")
 import .Bijective: Simple2D
 export Simple2D
 
+include("facecontinuous.jl")
+export FaceContinuous
+
 include("suite.jl")
 end
