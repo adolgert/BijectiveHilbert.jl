@@ -13,7 +13,12 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Usage" => "usage.md"
+        "Usage" => "usage.md",
+        "Algorithms" => [
+            "simple2d.md",
+            "globalgray.md",
+            "compact.md"
+        ]
     ],
 )
 
