@@ -389,6 +389,14 @@ function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
 end
 
 
+"""
+    SpaceGray(b, n)
+    SpaceGray(::Type{T}, b, n)
+
+This is an n-dimensional Hilbert curve where all `n` dimensions
+must have `b` bits in size. It was described in the same paper
+and examples as the `Compact` algorithm.
+"""
 struct SpaceGray{T} <: HilbertAlgorithm{T}
     b::Int
     n::Int
@@ -404,6 +412,11 @@ function SpaceGray(b, n)
 end
 
 
+function SpaceGray(::Type{T}, b, n) where {T}
+    SpaceGray{T}(b, n)
+end
+
+
 function encode_hilbert_zero(g::SpaceGray{T}, X::Vector)::T where {T}
     hilbert_index_paper(T, g.n, g.b, X)
 end
@@ -414,6 +427,29 @@ function decode_hilbert_zero!(g::SpaceGray{T}, X::Vector, h::T) where {T}
 end
 
 
+"""
+    Compact(ms::Vector{Int})
+    Compact(::Type{T}, ms::Vector{Int})
+
+This algorithm is n-dimensional and permits dimensions to use different
+numbers of bits, specified in the `ms` vector. The type `T` is an
+optional data type for the Hilbert index. It should be greater than or
+equal to the sum of the bits.
+
+This algorithm comes from three sources:
+
+* A technical report, "Compact Hilbert Indices" by Chris Hamilton.
+  Technical Report CS-2006-07. 6059 University Ave., Halifax, Nova
+  Scotia, B3H 1W5, Canada. This report is informative but has many
+  errors.
+
+* A paper by Hamilton and Rau-Chaplin, "Compact Hilbert Indices for
+  Multi-Dimensional Data," 2007. Nice paper. Also wrong.
+
+* The [libhilbert source code](https://github.com/pdebuyl/libhilbert)
+  is a copy of Hamilton's work and has many corrections. This, ultimately,
+  lead to the working code.
+"""
 struct Compact{T} <: HilbertAlgorithm{T}
     ms::Vector{Int}
     n::Int

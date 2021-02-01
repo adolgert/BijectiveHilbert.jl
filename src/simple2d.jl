@@ -1,6 +1,22 @@
 module Bijective
 import ..BijectiveHilbert: encode_hilbert_zero, decode_hilbert_zero!, HilbertAlgorithm, axis_type
 
+"""
+Simple2D(::Type{T})
+
+The type is a data type to hold the Hilbert index. It should have
+enough bits to hold all bits of integer axes to encode.
+
+The variant algorithm used differs from the usual Hilbert code because it
+doesn't need to know the size of the whole grid before computing the code.
+It looks like a slightly-rotated version of the Hilbert curve, but it
+has the benefit that it is 1-1 between `(x, y)` and `z`, so you can translate
+back and forth.
+
+It comes from a paper: 
+N. Chen, N. Wang, B. Shi, A new algorithm for encoding and decoding
+the Hilbert order. Software—Practice and Experience 2007; 37(8): 897–908.
+"""
 struct Simple2D{T} <: HilbertAlgorithm{T}
 end
 
@@ -11,31 +27,6 @@ Simple2D(::Type{T}) where {T} = Simple2D{T}()
 axis_type(::Simple2D{T}) where {T} = Int
 
 
-"""
-    encode_hilbert_zero(::Simple2D{T}, X::Vector{A})
-
-Computes an integer Hilbert index for x and y using a variant algorithm.
-
-Given two integer indices for a 2-dimensional plane, return a single index.
-This index is designed to increase locality for 1-dimensional access.
-It does this by keeping nearby points in 2 dimensions also nearby in
-1 dimension.
-
-`x` and `y` need to be integers that have bit-shifting operations.
-
-The variant algorithm used differs from the usual Hilbert code because it
-doesn't need to know the size of the whole grid before computing the code [^1].
-It looks like a slightly-rotated version of the Hilbert curve, but it
-has the benefit that it is 1-1 between `(x, y)` and `z`, so you can translate
-back and forth.
-
-This function is zero-based. `0 <= x < 2^n`, `0 <= y < 2^n`, and the result
-is `0 <= z < 4^n`.
-
-See also: [`decode_hilbert_zero`](@ref), [`encode_hilbert`](@ref).
-
-[^1]: N. Chen, N. Wang, B. Shi, A new algorithm for encoding and decoding the Hilbert order. Software—Practice and Experience 2007; 37(8): 897–908.
-"""
 function encode_hilbert_zero(::Simple2D{T}, X::Vector{A})::T where {A, T}
     x = X[1]
     y = X[2]
@@ -91,16 +82,6 @@ function encode_hilbert_zero(::Simple2D{T}, X::Vector{A})::T where {A, T}
 end
 
 
-"""
-    decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T)
-
-Computes the (x, y) from a Hilbert code.
-
-This function is zero-based. `0 <= x < 2^n`, `0 <= y < 2^n`, and
-`0 <= z < 4^n`.
-
-See also: [`encode_hilbert_zero`](@ref), [`decode_hilbert`](@ref).
-"""
 function decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T) where {A,T}
     r = z & T(3)
     x, y = A.([(0, 0), (0, 1), (1, 1), (1, 0)][r + 1])

@@ -1,17 +1,10 @@
-# The GlobalGray algorithm. This follows an article,
-# "Programming the Hilbert Curve," by John Skilling.
-# 707 (2004), http://dx.doi.org/10.1063/1.1751381.
-# I call it "global Gray" because the insight of the article
-# is that a single, global Gray code can be applied to all
-# np bits of a Hilbert length.
-
 """
     transpose_to_axes(coord, b, n)
 
 Convert from Hilbert index to a coordinatefor `b` bits
 in `n` dimensions.
 """
-function transpose_to_axes!(X::Vector{T}, b, n) where {T <: Unsigned}
+function transpose_to_axes!(X::Vector{T}, b, n) where {T <: Integer}
     N = T(2) << (b - 1)
     # Gray decode by H^(H/2)
     t = X[n] >> 1
@@ -37,7 +30,7 @@ function transpose_to_axes!(X::Vector{T}, b, n) where {T <: Unsigned}
 end
 
 
-function axes_to_transpose!(X::Vector{T}, b, n) where {T <: Unsigned}
+function axes_to_transpose!(X::Vector{T}, b, n) where {T <: Integer}
     M = one(T) << (b - 1)
     # Inverse undo
     Q = M
@@ -127,6 +120,23 @@ function outerleave_transpose_low!(X::Vector{T}, h, b, n) where {T <: Integer}
 end
 
 
+"""
+    GlobalGray(b, n)
+    GlobalGray(T, b, n)
+
+`T` is a data type for the Hilbert index. It can be signed or unsigned,
+as long as it has at least `n * b` bits. `n` is the number of dimensions,
+and `b` is the bits per dimension, so each axis value should be between
+0 and ``2^b - 1``, inclusive, for the zero-based interface. They should be
+between 1 and ``2^b``, inclusive, for the one-based interface.
+
+The GlobalGray algorithm is an n-dimensional Hilbert curve with a simplified
+implementation. It follows an article, "Programming the Hilbert Curve," by
+John Skilling, 707 (2004), http://dx.doi.org/10.1063/1.1751381.
+I call it "Global Gray" because the insight of the article
+is that a single, global Gray code can be applied to all
+np bits of a Hilbert length.
+"""
 struct GlobalGray{T} <: HilbertAlgorithm{T}
     b::Int
     n::Int
@@ -153,12 +163,27 @@ function encode_hilbert_zero!(g::GlobalGray{T}, X::Vector)::T where {T}
 end
 
 
+"""
+    encode_hilbert_zero(ha::HilbertAlgorithm{T}, X::Vector{A})
+
+Takes an n-dimensional vector `X` and returns a single integer of type
+`T` which orders `X` to improve spatial locality. The input `X` has multiple
+axes and the output is called a Hilbert index. This version is zero-based,
+so each axis counts from 0, and the smallest Hilbert index is 0.
+"""
 function encode_hilbert_zero(g::GlobalGray{T}, X::Vector)::T where {T}
     Y = copy(X)
     encode_hilbert_zero!(g, Y)
 end
 
 
+"""
+    decode_hilbert_zero!(ha::HilbertAlgorithm{T}}, X::Vector{A}, h::T)
+
+Given a Hilbert index, `h`, computes an n-dimensional coordinate `X`. The type of
+the Hilbert index is large enought to contain the bits of all dimensions of the
+axis vector, `X`.
+"""
 function decode_hilbert_zero!(g::GlobalGray{T}, X::Vector, h::T) where {T}
     outerleave_transpose!(X, h, g.b, g.n)
     transpose_to_axes!(X, g.b, g.n)
