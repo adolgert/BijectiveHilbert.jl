@@ -5,15 +5,15 @@ version = "0.1.0"
 
 [deps]
 
-
 [compat]
 julia = "^1.1"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+UnitTestDesign = "239896fa-e45a-40e8-9993-3c434b0bc450"
 
 [targets]
 test = ["Test", "CSV", "Random", "SafeTestsets"]

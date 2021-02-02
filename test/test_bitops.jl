@@ -28,7 +28,6 @@ for (try_idx, trial) in enumerate(tries)
     end
     @test y == y1
 end
-
 end
 
 
