@@ -294,9 +294,22 @@ end
 
 @safetestset ith_bit_types = "ith_bit ops use all types" begin
 using BijectiveHilbert: ith_bit_of_indices, set_indices_bits!
+using Random
+rng = MersenneTwister(4972433234)
 tt = [Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128]
-T = tt[3]
-
+for T in tt
+    for j in 1:10
+    n = 1
+    p = zeros(T, 1)
+    p[1] = T(rand(rng, 0:typemax(T)))
+    q = zeros(T, 1)
+    for i in 0:(8*sizeof(T) - 1)
+        b = ith_bit_of_indices(n, p, i)
+        set_indices_bits!(q, b, n, i)
+    end
+    @test q[1] == p[1]
+    end
+end
 end
 
 
@@ -586,7 +599,6 @@ for idx in Base.IteratorsMD.CartesianIndices((length(aas), length(tts)))
     decode_hilbert_zero!(gg, X, hli)
     @test X == Xbase
     hl2 = encode_hilbert_zero(gg, X)
-    @show A, T, hl2, hli
     @test hl2 == hli
 end
 end
