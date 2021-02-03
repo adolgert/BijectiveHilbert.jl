@@ -1,19 +1,2 @@
 # This file is machine-generated - editing it directly is not advised
 
-[[Combinatorics]]
-git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
-uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-version = "1.0.2"
-
-[[Random]]
-deps = ["Serialization"]
-uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-
-[[Serialization]]
-uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
-
-[[UnitTestDesign]]
-deps = ["Combinatorics", "Random"]
-git-tree-sha1 = "6dbac77929682e40c6a1cabdc5948721e383f1d7"
-uuid = "239896fa-e45a-40e8-9993-3c434b0bc450"
-version = "0.1.0"
