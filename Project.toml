@@ -1,7 +1,7 @@
 name = "BijectiveHilbert"
 uuid = "91e7fc40-53cd-4118-bd19-d7fcd1de2a54"
 authors = ["Andrew Dolgert <adolgert@uw.edu>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [compat]
 julia = "^1.2"
