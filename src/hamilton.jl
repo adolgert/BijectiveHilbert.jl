@@ -89,8 +89,9 @@ and place it so that the first vector's value is at the
 """
 function ith_bit_of_indices(n, p, i)
     l = zero(eltype(p))
-    for j = 1:n
-        l |= (p[j] & (one(eltype(p))<<i)) >> (i - j + one(eltype(p)))
+    for j = 0:(n - 1)
+        b = (p[j + 1] & (one(eltype(p))<<i)) >>i
+        l |= b << j
     end
     l
 end

@@ -34,6 +34,7 @@ function check_own_inverse(gg::HilbertAlgorithm, ms::Vector{Int}, n)
                 break
             end
         end
+        @assert p != q
     end
     success
 end
