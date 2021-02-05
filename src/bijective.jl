@@ -12,31 +12,6 @@ hilbert_variant_encode_table = Function[
 ]
 
 
-"""
-    encode_hilbert_zero(x::Integer, y::Integer)
-
-Computes an integer Hilbert index for x and y using a variant algorithm.
-
-Given two integer indices for a 2-dimensional plane, return a single index.
-This index is designed to increase locality for 1-dimensional access.
-It does this by keeping nearby points in 2 dimensions also nearby in
-1 dimension.
-
-`x` and `y` need to be integers that have bit-shifting operations.
-
-The variant algorithm used differs from the usual Hilbert code because it
-doesn't need to know the size of the whole grid before computing the code [^1].
-It looks like a slightly-rotated version of the Hilbert curve, but it
-has the benefit that it is 1-1 between `(x, y)` and `z`, so you can translate
-back and forth.
-
-This function is zero-based. `0 <= x < 2^n`, `0 <= y < 2^n`, and the result
-is `0 <= z < 4^n`.
-
-See also: [`decode_hilbert_zero`](@ref), [`encode_hilbert`](@ref).
-
-[^1]: N. Chen, N. Wang, B. Shi, A new algorithm for encoding and decoding the Hilbert order. Software—Practice and Experience 2007; 37(8): 897–908.
-"""
 function encode_hilbert_zero(x::Integer, y::Integer)
     z = zero(x)
     if x == 0 && y == 0
@@ -69,16 +44,6 @@ hilbert_variant_decode_table = Function[
 ]
 
 
-"""
-    decode_hilbert_zero(z::Integer) -> (x, y)
-
-Computes the (x, y) from a Hilbert code.
-
-This function is zero-based. `0 <= x < 2^n`, `0 <= y < 2^n`, and
-`0 <= z < 4^n`.
-
-See also: [`encode_hilbert_zero`](@ref), [`decode_hilbert`](@ref).
-"""
 function decode_hilbert_zero(z)
     r = z & 3
     x, y = typeof(z).([(0, 0), (0, 1), (1, 1), (1, 0)][r + 1])
@@ -97,22 +62,9 @@ function decode_hilbert_zero(z)
 end
 
 
-"""
-    encode_hilbert(x, y)
-
-A 1-based Hilbert code, so `x` and `y` start at one, and the `z` that this
-returns also starts at one.
-
-See also: [`encode_hilbert_zero`](@ref).
-"""
 encode_hilbert(x::Integer, y::Integer) = encode_hilbert_zero(x - 1, y - 1) + 1
 
 
-"""
-    decode_hilbert(x, y)
-
-A 1-based Hilbert decode, from [`decode_hilbert_zero`](@ref).
-"""
 function decode_hilbert(z::Integer)
     x, y = decode_hilbert_zero(z - 1)
     x + 1, y + 1

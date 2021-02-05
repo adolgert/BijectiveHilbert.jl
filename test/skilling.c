@@ -1,4 +1,4 @@
-#include<stdio.h>
+#include <stdio.h>
 //+++++++++++++++++++++++++++ PUBLIC-DOMAIN SOFTWARE ++++++++++++++++++++++++++
 // Functions: TransposetoAxes AxestoTranspose
 // Purpose: Transform in-place between Hilbert transpose and geometrical axes
@@ -38,7 +38,7 @@ void TransposetoAxes(coord_t *X, int b, int n) // position, #bits, dimension
     } // exchange
 }
 
-void InverseUndo(coord_t* X, int b, int n)
+void InverseUndo(coord_t *X, int b, int n)
 {
     coord_t M = 1 << (b - 1), P, Q, t;
     int i;
@@ -46,9 +46,11 @@ void InverseUndo(coord_t* X, int b, int n)
     for (Q = M; Q > 1; Q >>= 1)
     {
         P = Q - 1;
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; i++)
+        {
             printf("Q=%u X[0]=%u X[%d]=%u\n", Q, X[0], i, X[i]);
-            if (X[i] & Q) {
+            if (X[i] & Q)
+            {
                 X[0] ^= P; // invert
                 printf("X[0]=%u P=%u\n", X[0], P);
             }

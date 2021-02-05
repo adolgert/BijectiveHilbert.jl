@@ -43,7 +43,7 @@ t = UInt8[0b1100, 0b0110, 0b0011]
 b = 4
 n = length(t)
 h = BijectiveHilbert.interleave_transpose(UInt64, t, b, n)
-@test h == 0b001011110100
+@test h == 0b100110011001
 end
 
 
@@ -53,8 +53,8 @@ using BijectiveHilbert
 n = 3
 b = 4
 X = zeros(UInt8, n)
-for h in 0:(1<<b - 1)
-    BijectiveHilbert.outerleave_transpose!(UInt64, X, UInt64(h), b, n)
+for h in 0:(1<<(n*b) - 1)
+    BijectiveHilbert.outerleave_transpose!(X, UInt64(h), b, n)
     h2 = BijectiveHilbert.interleave_transpose(UInt64, X, b, n)
     @test h == h2
 end
@@ -81,36 +81,101 @@ end
 
 
 @safetestset hilbert_one_diff = "GlobalGray values next to each other" begin
-  using BijectiveHilbert
-  xy = Set(Tuple{Int64, Int64}[])
-  n = 2
-  b = 6
-  if false
-  gg = GlobalGray(b, n)
-  A = axis_type(gg)
-  TT = index_type(gg)
-  X = zeros(A, n)
-  Y = copy(X)
-  hh = UInt64(0)
-  for h in 0:(1<<(n*b) - 1)
-    decode_hilbert_zero!(gg, X, TT(h))
-    tdiff = UInt64(0)
-    if h > 0
-        for cmp_idx in 1:n
-            if X[cmp_idx] > Y[cmp_idx]
-                tdiff += X[cmp_idx] - Y[cmp_idx]
-            else
-                tdiff += Y[cmp_idx] - X[cmp_idx]
-            end
-        end
-        @test tdiff == 1
-        if tdiff > 1
-            @show h, X, hh, Y
-            break
+using BijectiveHilbert: GlobalGray, check_complete_set
+n = 3
+b = 4
+gg = GlobalGray(b, n)
+@test check_complete_set(gg, b, n)
+end
+
+
+@safetestset globalgray_against_file = "globalgray agrees with C code" begin
+function read_skill(fn)
+    lines = readlines(fn)
+    xyz = zeros(Int, 3, length(lines))
+    hh = zeros(Int, 3, length(lines))
+    idx = 0
+    for ll in lines
+        axmatch = r"^\((\d+), (\d+), (\d+)\)"
+        hmatch = r"\) \((\d+), (\d+), (\d+)\)"
+        if occursin(axmatch, ll)
+            idx += 1
+            mm = match(axmatch, ll)
+            xyz[:, idx] = parse.(Int, mm.captures)
+            hh[:, idx] = parse.(Int, match(hmatch, ll).captures)
         end
     end
-    Y .= X
-    hh = h
-  end
-  end
+    return xyz, hh
+end
+
+fn = "test/skill3_4_4_4.txt"
+if !isfile(fn)
+    fn = basename(fn)
+end
+if isfile(fn)
+    xyz, hh = read_skill(fn)
+
+using BijectiveHilbert
+for check_idx in 1:size(xyz, 2)
+    ax = convert(Vector{UInt8}, xyz[:, check_idx])
+    h = convert(Vector{UInt8}, hh[:, check_idx])
+    BijectiveHilbert.axes_to_transpose!(ax, 4, 3)
+    @test ax == h
+end
+
+for check_idx in 1:size(xyz, 2)
+    ax = convert(Vector{UInt8}, xyz[:, check_idx])
+    h = convert(Vector{UInt8}, hh[:, check_idx])
+    BijectiveHilbert.transpose_to_axes!(h, 4, 3)
+    @test h == ax
+end
+end
+end
+
+
+@safetestset globalgray_type_interactions = "GlobalGray type interactions" begin
+    using BijectiveHilbert
+    using UnitTestDesign
+    using Random
+    rng = Random.MersenneTwister(9790323)
+    for retrial in 1:5
+        AxisTypes = shuffle(rng, [Int8, Int, UInt, Int128, UInt8, UInt128])
+        IndexTypes = shuffle(rng, [Union{}, Int8, UInt8, Int, UInt, Int128, UInt128])
+        Count= shuffle(rng, [0, 1])
+        Dims = shuffle(rng, [2, 3, 4])
+        Bits = shuffle(rng, [2, 3, 4, 5])
+        test_set = all_pairs(
+            AxisTypes, IndexTypes, Count, Dims, Bits;
+        )
+        for (A, I, C, D, B) in test_set
+            if I == Union{}
+                gg = GlobalGray(B, D)
+                I = index_type(gg)
+            else
+                gg = GlobalGray(I, B, D)
+            end
+            if B * D > log2(typemax(I))
+                continue
+            end
+            last = (one(I) << (B * D)) - one(I) + I(C)
+            mid = one(I) << (B * D - 1)
+            few = 5
+            X = zeros(A, D)
+            hlarr = vcat(C:min(mid, few), max(mid + 1, last - few):last)
+            for hl in hlarr
+                hli = I(hl)
+                if C == 0
+                    decode_hilbert_zero!(gg, X, hli)
+                    hl2 = encode_hilbert_zero(gg, X)
+                    @test hl2 == hli
+                    @test typeof(hl2) == typeof(hli)
+                else
+                    decode_hilbert!(gg, X, hli)
+                    hl2 = encode_hilbert(gg, X)
+                    @test hl2 == hli
+                    @test typeof(hl2) == typeof(hli)
+                end
+            end
+        end
+    end
 end
