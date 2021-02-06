@@ -269,7 +269,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     wordbits = 8 * sizeof(K)
     # 	U_int	mask = (U_int)1 << WORDBITS - 1, element, temp1, temp2,
     # 		A, W = 0, S, tS, T, tT, J, P = 0, xJ;
-    mask = one(K) << (gg.b - 1)
+    mask = one(K) << (wordbits - 1)
     # 	Point	pt = {0};
     # 	int	i = NUMBITS * DIM - DIM, j;
     i = gg.b * gg.n - gg.n

@@ -4,15 +4,16 @@
 # Test using the vector form of the Hilbert index so that we don't
 # introduce another layer of error. When this works, delete it.
 using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!
-fc = FaceContinuous(UInt32, 32, 3)
-X = zeros(UInt32, 3)
-X[1] = UInt32(8)
-X[2] = UInt32(5)
-X[3] = UInt32(7)
-hvec = zeros(UInt32, 3)
+# Works for UInt32 or UInt16.
+fc = FaceContinuous(UInt16, 16, 3)
+X = zeros(UInt16, 3)
+X[1] = UInt16(8)
+X[2] = UInt16(5)
+X[3] = UInt16(7)
+hvec = zeros(UInt16, 3)
 H_encode!(fc, X, hvec)
 @show X, hvec
-X .= zero(UInt32)
+X .= zero(UInt16)
 H_decode!(fc, hvec, X)
 @show X
 end
