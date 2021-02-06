@@ -3,18 +3,39 @@
 @safetestset facecontinuous_smoke = "FaceContinuous basic test" begin
 # Test using the vector form of the Hilbert index so that we don't
 # introduce another layer of error. When this works, delete it.
-using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!
+using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!, msb
 # Works for UInt32 or UInt16.
-fc = FaceContinuous(UInt16, 16, 3)
-X = zeros(UInt16, 3)
-X[1] = UInt16(8)
-X[2] = UInt16(5)
-X[3] = UInt16(7)
-hvec = zeros(UInt16, 3)
+A = UInt32
+H = UInt32
+fc = FaceContinuous(H, 9, 3)
+X = zeros(A, 3)
+X[1] = A(0x8f)
+X[2] = A(0x8f)
+X[3] = A(0x8f)
+hvec = zeros(A, 3)
 H_encode!(fc, X, hvec)
-@show X, hvec
-X .= zero(UInt16)
+@show X, hvec, msb(hvec[1])
+X .= zero(A)
 H_decode!(fc, hvec, X)
+@show X
+end
+
+@safetestset facecontinuous_api = "FaceContinuous api test" begin
+# Test using the vector form of the Hilbert index so that we don't
+# introduce another layer of error. When this works, delete it.
+using BijectiveHilbert: FaceContinuous, encode_hilbert_zero, decode_hilbert_zero!
+# Works for UInt32 or UInt16.
+A = UInt32
+H = UInt32
+fc = FaceContinuous(H, 9, 3)
+X = zeros(A, 3)
+X[1] = A(0x8f)
+X[2] = A(0x85)
+X[3] = A(0x43)
+h = encode_hilbert_zero(fc, X)
+@show X, h
+X .= zero(A)
+decode_hilbert_zero!(fc, X, h)
 @show X
 end
 

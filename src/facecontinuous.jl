@@ -48,7 +48,7 @@ function H_encode!(gg::FaceContinuous, pt::Vector{K}, h::Vector{K}) where {K}
     P = zero(K)
     h .= zero(K)
     # Start from the high bit in each element and work to the low bit.
-    mask = one(K) << (wordbits - 1)
+    mask = one(K) << (gg.b - 1)  # lawder puts wordbits here.
     # The H-index needs b * n bits of storage. i points to the base of the current level.
     i = gg.b * gg.n - gg.n
     # A will hold bits from all pt elements, at the current level.
@@ -67,13 +67,15 @@ function H_encode!(gg::FaceContinuous, pt::Vector{K}, h::Vector{K}) where {K}
         end
     end
 
-    elementz = i ÷ wordbits
+    # P is the answer, but it has to be packed into a vector.
+    element = i ÷ wordbits
     if (i % wordbits) > (wordbits - gg.n)
-        h[elementz + 1] |= (P << (i % wordbits))
-        h[elementz + 2] |= P >> (wordbits - (i % wordbits))
+        h[element + 1] |= (P << (i % wordbits))
+        h[element + 2] |= P >> (wordbits - (i % wordbits))
 	else
-        h[elementz + 1] |= (P << (i - elementz * wordbits))
+        h[element + 1] |= (P << (i - element * wordbits))
     end
+
     J = gg.n
     j = 1
     while j < gg.n
@@ -102,8 +104,8 @@ function H_encode!(gg::FaceContinuous, pt::Vector{K}, h::Vector{K}) where {K}
     i -= gg.n
     mask >>= 1
     while i >= 0
-        println("i=$i mask=$mask T=$T P=$P")
-		println("h[0]=$(h[1]) h[1]=$(h[2]) h[2]=$(h[3])")
+        # println("i=$i mask=$mask T=$T P=$P")
+		# println("h[0]=$(h[1]) h[1]=$(h[2]) h[2]=$(h[3])")
         A = zero(K)
         for j = 0:(gg.n - 1)
             if pt[j + 1] & mask != zero(K)
@@ -173,13 +175,13 @@ function H_encode!(gg::FaceContinuous, pt::Vector{K}, h::Vector{K}) where {K}
         i -= gg.n
         mask >>= 1
     end
-    println("h[0]=$(h[1]) h[1]=$(h[2]) h[2]=$(h[3])")
+    # println("h[0]=$(h[1]) h[1]=$(h[2]) h[2]=$(h[3])")
 end
 
 
 function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     wordbits = 8 * sizeof(K)
-    mask = one(K) << (wordbits - 1)
+    mask = one(K) << (gg.b - 1)  # lawder puts wordbits here.
     i = gg.b * gg.n - gg.n
     
     # 	/*--- P ---*/
@@ -244,8 +246,8 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     i -= gg.n
     mask >>= 1
     while i >= 0
-        println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT, W=$W")
-		println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
+        # println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT, W=$W")
+		# println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
         # 		/*--- P ---*/
         element = i ÷ wordbits
         P = H[element + 1]
@@ -323,7 +325,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
                 end
                 j += 1
             end
-            println("j=$j P=$P J=$J")
+            # println("j=$j P=$P J=$J")
             if j != gg.n
                 J -= j
             end

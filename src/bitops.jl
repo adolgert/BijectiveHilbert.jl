@@ -56,6 +56,21 @@ end
 
 
 """
+    msb(v::Integer)
+
+Most-significant bit, zero-based count. So `0b1` is 0,
+`0b1010` is 3.
+"""
+function msb(v::Integer)
+    r = 0
+    while (v >>= 1) != 0
+        r += 1
+    end
+    r
+end
+
+
+"""
     trailing_zero_bits(v::Integer)
 
 The number of zero bits after the last one-bit.
