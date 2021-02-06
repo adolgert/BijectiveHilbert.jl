@@ -146,7 +146,6 @@ Hcode H_encode(Point p)
 		{
 			if (P < 3)
 				T = 0;
-			else
 				if (P % 2)
 					T = (P - 1) ^ (P - 1) / 2;
 				else

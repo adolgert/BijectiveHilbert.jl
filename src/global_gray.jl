@@ -96,17 +96,10 @@ end
 
 
 """
-<<<<<<< HEAD
-Takes the vector `X` of size `n` with up to `b` bits in each value,
-and creates a single value of type `T` with those bits interleaved.
-"""
-function interleave_transpose(::Type{T}, X::Vector{A}, b, n) where {A, T}
-=======
 Takes a vector of length `n` and places the bits of all `n` integers
 into a single integer. The vector's 1st component is the least significant bit.
 """
 function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
->>>>>>> ba03f6c7ddc1ea781048e28f01e9a545152499fa
     h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
@@ -117,17 +110,8 @@ function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
 end
 
 
-<<<<<<< HEAD
-"""
-Takes a single value `h` of type `T` and reads its bits into a vector `X`
-such that each of the `n` members of `X` has `b` bits.
-"""
-function outerleave_transpose!(::Type{T}, X::Vector{A}, h::T, b, n) where {A, T}
-    X .= zero(A)
-=======
 function outerleave_transpose_low!(X::Vector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
->>>>>>> ba03f6c7ddc1ea781048e28f01e9a545152499fa
     for i in 0:(b-1)
         for d in 1:n
             X[d] |= (h & (one(T) << (i * n + d - 1))) >> (i * (n - 1) + d - 1)
