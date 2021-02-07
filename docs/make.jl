@@ -17,7 +17,8 @@ makedocs(;
         "Algorithms" => [
             "simple2d.md",
             "globalgray.md",
-            "compact.md"
+            "compact.md",
+            "facecontinuous.md"
         ]
     ],
 )

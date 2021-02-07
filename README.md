@@ -35,8 +35,8 @@ This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_cu
 
 Included are several variations of the Hilbert curve. They are type-stable and thoroughly tested, including bug fixes on three of the implementations.
 
-* [`Simple2D`](@ref), shown above, two-dimensional. Doesn't need to know axis dimensions, from Chen, Wang, and Shi.
-* [`GlobalGray`](@ref), an n-dimensional curve where all axis dimensions must be equal, from Skilling.
-* [`SpaceGray`](@ref), an n-dimensional curve with a different path. All axis dimensions must be equal, from Hamilton and Rau-Chaplin.
-* [`Compact`](@ref), an n-dimensional curve the permits each axis to be a different size, from Hamilton and Rau-Chaplin.
-* [`FaceContinuous`](@ref), an n-dimensional curve, the oldest version from Butz and Lawder.
+* [`Simple2D`](https://computingkitchen.com/BijectiveHilbert.jl/stable/simple2d/), shown above, two-dimensional. Doesn't need to know axis dimensions, from Chen, Wang, and Shi.
+* [`GlobalGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/), an n-dimensional curve where all axis dimensions must be equal, from Skilling.
+* [`SpaceGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/), an n-dimensional curve with a different path. All axis dimensions must be equal, from Hamilton and Rau-Chaplin.
+* [`Compact`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/), an n-dimensional curve the permits each axis to be a different size, from Hamilton and Rau-Chaplin.
+* [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/), an n-dimensional curve, the oldest version from Butz and Lawder.
