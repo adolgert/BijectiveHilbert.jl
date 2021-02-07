@@ -2,6 +2,8 @@ using BijectiveHilbert
 using SafeTestsets
 using Test
 
+include("suite.jl")
+
 @testset "BijectiveHilbert.jl" begin
 include("test_bitops.jl")
 include("test_gray_code.jl")

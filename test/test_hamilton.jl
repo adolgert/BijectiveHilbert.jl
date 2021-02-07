@@ -314,7 +314,8 @@ end
 
 
 @safetestset hilbert_index_complete4d = "hilbert index is a complete set for 4d" begin
-using BijectiveHilbert: SpaceGray, check_complete_set
+using BijectiveHilbert: SpaceGray
+using ..HilbertTestSuite: check_complete_set
 b = 3
 n = 4
 gg = SpaceGray(b, n)
@@ -377,7 +378,8 @@ end
 
 
 @safetestset paper_inv = "paper hilbert is own inverse" begin
-using BijectiveHilbert: check_own_inverse, SpaceGray
+using BijectiveHilbert: SpaceGray
+using ..HilbertTestSuite: check_own_inverse
 for n in 2:5
     for b in 2:4
         gg = SpaceGray(b, n)
@@ -430,7 +432,8 @@ end
 
 
 @safetestset compact_index_is_its_inverse = "compact index is its inverse" begin
-using BijectiveHilbert: Compact, check_own_inverse
+using BijectiveHilbert: Compact
+using ..HilbertTestSuite: check_own_inverse
 using Random
 rng = MersenneTwister(432479874)
 for n = [5]

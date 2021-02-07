@@ -22,7 +22,8 @@ end
 
 
 @safetestset simple2d_own_inverse = "simple2d is its own inverse" begin
-  using BijectiveHilbert: Simple2D, check_own_inverse
+  using BijectiveHilbert: Simple2D
+  using ..HilbertTestSuite: check_own_inverse
   gg = Simple2D(Int)
   for b in 2:7
     @test check_own_inverse(gg, b, 2)
@@ -31,7 +32,8 @@ end
 
 
 @safetestset simple2d_complete_set = "simple2d is a complete set" begin
-  using BijectiveHilbert: Simple2D, check_complete_set
+  using BijectiveHilbert: Simple2D
+  using ..HilbertTestSuite: check_complete_set
   gg = Simple2D(Int)
   for b in 2:7
     @test check_complete_set(gg, b, 2)

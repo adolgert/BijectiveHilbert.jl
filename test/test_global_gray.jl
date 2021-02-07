@@ -81,7 +81,8 @@ end
 
 
 @safetestset hilbert_one_diff = "GlobalGray values next to each other" begin
-using BijectiveHilbert: GlobalGray, check_complete_set
+using BijectiveHilbert: GlobalGray
+using ..HilbertTestSuite: check_complete_set
 n = 3
 b = 4
 gg = GlobalGray(b, n)

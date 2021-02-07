@@ -1,3 +1,8 @@
+module HilbertTestSuite
+using BijectiveHilbert: HilbertAlgorithm, decode_hilbert_zero!, encode_hilbert_zero
+using BijectiveHilbert: index_type, axis_type
+
+
 function check_own_inverse(gg::HilbertAlgorithm, b::Int, n)
     success = true
     p = zeros(axis_type(gg), n)
@@ -80,4 +85,6 @@ for ihidx in 0:(1<<(dim_cnt*m) - 2)  # compare with next, so stop one early.
     end
 end
 success
+end
+
 end
