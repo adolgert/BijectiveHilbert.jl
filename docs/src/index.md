@@ -1,7 +1,7 @@
 
 # BijectiveHilbert
 
-Data in two or more dimensions is stored linearly, so places nearby in the data can be far in memory or on disk. This package offers functions that sort multi-dimensional data to make storage and retrieval more efficient.
+Data in two or more dimensions is stored linearly, so places nearby in the data can be far in memory or on disk. This package offers functions that make multi-dimensional data storage and retrieval more efficient by sorting them so that nearby data is nearby in memory.
 
 ```julia
 julia> using Pkg; Pkg.add("BijectiveHilbert")
@@ -27,11 +27,12 @@ julia> xy
  61  62  51  52  47  46  41  42
  64  63  50  49  48  45  44  43
 ```
-This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve), is used most often for geospatial work or database implementation but is equally appropriate for dealing with large TIFF files. It helps memory locality because the order of the z-coordinate tends to pick values that are near each other in space. It belongs to the class of space-filling, self-avoiding, simple, and self-similar (FASS) curves, which includes Peano curves, and Morton z-curves.
+This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve), is used most often for geospatial work or database implementation but is equally appropriate for dealing with large TIFF files. It belongs to the class of space-filling, self-avoiding, simple, and self-similar (FASS) curves, which includes Peano curves, and Morton z-curves.
 
-Included are several variations of the Hilbert curve.
+Included are several variations of the Hilbert curve. They are type-stable and thoroughly tested, including bug fixes on three of the implementations.
 
-* [`Simple2D`](@ref), shown above, two-dimensional. Doesn't need to know axis dimensions.
-* [`GlobalGray`](@ref), an n-dimensional curve where all axis dimensions must be equal.
-* [`SpaceGray`](@ref), an n-dimensional curve with a different path. All axis dimensions must be equal.
-* [`Compact`](@ref), an n-dimensional curve the permits each axis to be a different size.
+* [`Simple2D`](@ref), shown above, two-dimensional. Doesn't need to know axis dimensions, from Chen, Wang, and Shi.
+* [`GlobalGray`](@ref), an n-dimensional curve where all axis dimensions must be equal, from Skilling.
+* [`SpaceGray`](@ref), an n-dimensional curve with a different path. All axis dimensions must be equal, from Hamilton and Rau-Chaplin.
+* [`Compact`](@ref), an n-dimensional curve the permits each axis to be a different size, from Hamilton and Rau-Chaplin.
+* [`FaceContinuous`](@ref), an n-dimensional curve, the oldest version from Butz and Lawder.
