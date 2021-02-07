@@ -7,18 +7,24 @@ using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!, msb
 # Works for UInt32 or UInt16.
 A = UInt32
 H = UInt32
-fc = FaceContinuous(H, 9, 3)
-X = zeros(A, 3)
-X[1] = A(0x8f)
-X[2] = A(0x8f)
-X[3] = A(0x8f)
-hvec = zeros(A, 3)
-H_encode!(fc, X, hvec)
-@show X, hvec, msb(hvec[1])
-X .= zero(A)
-H_decode!(fc, hvec, X)
-@show X
+fc1 = FaceContinuous(H, 9, 3)
+fc2 = FaceContinuous(H, 8, 3)
+X1 = zeros(A, 3)
+X1[1] = A(0x8f)
+X1[2] = A(0x8f)
+X1[3] = A(0x8f)
+hvec1 = zeros(A, 3)
+hvec2 = zeros(A, 3)
+H_encode!(fc1, X1, hvec1)
+H_encode!(fc2, X1, hvec2)
+@assert hvec1 == hvec2
+@show hvec1, hvec2, msb(hvec1[1])
+X2 = zeros(A, 3)
+H_decode!(fc1, hvec1, X1)
+H_decode!(fc2, hvec2, X2)
+@show X, X2
 end
+
 
 @safetestset facecontinuous_api = "FaceContinuous api test" begin
 # Test using the vector form of the Hilbert index so that we don't

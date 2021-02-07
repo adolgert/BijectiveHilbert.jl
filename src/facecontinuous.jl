@@ -180,11 +180,12 @@ end
 
 
 function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
+    pt .= zero(K)
     wordbits = 8 * sizeof(K)
     mask = one(K) << (gg.b - 1)  # lawder puts wordbits here.
     i = gg.b * gg.n - gg.n
     
-    # 	/*--- P ---*/
+    # P is the string of n bits at this level of the curve.
     element = i ÷ wordbits
     P = H[element + 1]
     if (i % wordbits) > (wordbits - gg.n)
@@ -200,7 +201,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     if gg.n < wordbits
         P &= (one(K) << gg.n) - one(K)
     end
-    
+
     # 	/*--- xJ ---*/
     J = gg.n
     j = 1
@@ -231,7 +232,8 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     
     # 	/*--- tT ---*/
     tT = T
-    
+    println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT")
+
     # 	/*--- distrib bits to coords ---*/
     j = gg.n - 1
     while P > zero(K)
@@ -241,13 +243,12 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
         P >>= 1
         j -= 1
     end
+    println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
     
     W = zero(K)
     i -= gg.n
     mask >>= 1
     while i >= 0
-        # println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT, W=$W")
-		# println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
         # 		/*--- P ---*/
         element = i ÷ wordbits
         P = H[element + 1]
@@ -260,10 +261,10 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
             P >>= i % wordbits
         end
     
-    # 		/* the & masks out spurious highbit values */
+        # Remove bits above the ones we want.
         if gg.n < wordbits
             P &= (one(K) << gg.n) - one(K)
-        end 
+        end
     
         # 		/*--- S ---*/
         S = P ⊻ (P >> 1)
@@ -277,6 +278,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
         else
             tS = S
         end
+        println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT")
     
         # 		/*--- W ---*/
         W ⊻= tT
@@ -293,6 +295,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
             A >>= 1
             j -= 1
         end
+		println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
     
         if i > 0
             # 			/*--- T ---*/
@@ -325,7 +328,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
                 end
                 j += 1
             end
-            # println("j=$j P=$P J=$J")
+            println("j=$j P=$P J=$J")
             if j != gg.n
                 J -= j
             end
