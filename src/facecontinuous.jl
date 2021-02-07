@@ -231,43 +231,32 @@ function distribute_to_coords!(bits::K, axes::Vector{K}, l::FCLevel{K}) where K
 end
 
 
-function fc_mask_bits(S, xJ, n)
-    if xJ % n != 0
-        temp1 = S >> (xJ % n)
-        temp2 = S << (n - (xJ % n))
-        tS = temp1 | temp2
-        tS &= (one(S) << n) - one(S)
-    else
-        tS = S
-    end
-    tS
-end
-
-
-function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
-    pt .= zero(K)
-    l = FCLevel(gg, K)
-    
-    P = index_at_level(H, l)
-
-    # 	/*--- xJ ---*/
-    J = gg.n
+function fc_parity_match(P, n)
+    J = n
     j = 1
-    while j < gg.n
-        if ((P >> j) & one(K)) != (P & one(K))
+    parity = P & one(P)
+    while j < n
+        if ((P >> j) & one(P)) != parity
             break
         end
         j += 1
     end
-    if j != gg.n
-        J -= j
+    j
+end
+
+
+function fc_rotation(P, n)
+    j = fc_parity_match(P, n)
+    if j == n
+        xJ = n - 1
+    else
+        xJ = n - j - 1
     end
-    xJ = J - 1
-    
-    # 	/*--- S, tS, A ---*/
-    A = S = tS = brgc(P)
-    
-    # 	/*--- T ---*/
+    xJ
+end
+
+
+function fc_flip(P::K) where {K}
     if P < K(3)
         T = zero(K)
     else
@@ -277,59 +266,40 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
             T = (P - K(2)) ⊻ ((P - K(2)) >> 1)
         end
     end
-    
-    # 	/*--- tT ---*/
-    tT = T
-    println("i=$(l.i) mask=$(l.mask) T=$T P=$P, xJ=$xJ, tT=$tT")
+    T
+end
 
-    distribute_to_coords!(P, pt, l)
-    println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
-    
+
+function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
+    pt .= zero(K)
+    l = FCLevel(gg, K)
+    P = index_at_level(H, l)
+    xJ = fc_rotation(P, gg.n)
+    A = S = tS = brgc(P)
+    tT = T = fc_flip(P)
+    # XXX Lawder's code puts P here instead of A.
+    distribute_to_coords!(A, pt, l)
+
+    nmask = (one(K) << gg.n) - one(K)  # mask of n bits.
+
     W = zero(K)
     downlevel!(l)
     while l.i >= 0
         P = index_at_level(H, l)
         S = brgc(P)
-    
-        # 		/*--- tS ---*/
-        tS = rotateright(S, xJ, gg.n)
-        println("i=$(l.i) mask=$(l.mask) T=$T P=$P, xJ=$xJ, tT=$tT")
+        @assert S & ~nmask == 0
+        tS = rotateright(S, xJ % gg.n, gg.n)
     
         W ⊻= tT
         A = W ⊻ tS
-        println("$(typeof(W)) $(typeof(tS)) $(typeof(S)) $(typeof(P))")
         distribute_to_coords!(A, pt, l)
-		println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
     
         if l.i > 0
-            # 			/*--- T ---*/
-            if P < K(3)
-                T = zero(K)
-            else
-                if P % 2 != 0
-                    T = (P - one(K)) ⊻ ((P - one(K)) >> 1)
-                else
-                    T = (P - K(2)) ⊻ ((P - K(2)) >> 1)
-                end
-            end
-    
-            # 			/*--- tT ---*/
-            tT = rotateright(T, xJ, gg.n)
-    
-            # 			/*--- xJ ---*/
-            J = gg.n
-            j = 1
-            while j < gg.n
-                if ((P >> j) & one(K)) != P & one(K)
-                    break
-                end
-                j += 1
-            end
-            println("j=$j P=$P J=$J")
-            if j != gg.n
-                J -= j
-            end
-            xJ += J - 1
+            T = fc_flip(P)
+            @assert T & ~nmask == 0
+            tT = rotateright(T, xJ % gg.n, gg.n)
+        
+            xJ += fc_rotation(P, gg.n)
         end
         downlevel!(l)
     end

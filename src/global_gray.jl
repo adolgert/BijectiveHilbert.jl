@@ -88,7 +88,7 @@ function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
     for i in 0:(b-1)
         for d in 1:n
-            ith_bit = (h & (1 << (i * n + n - d))) >> (i * n + n - d)
+            ith_bit = (h & (one(h) << (i * n + n - d))) >> (i * n + n - d)
             X[d] |= ith_bit << i
         end
     end
@@ -185,6 +185,6 @@ the Hilbert index is large enought to contain the bits of all dimensions of the
 axis vector, `X`.
 """
 function decode_hilbert_zero!(g::GlobalGray{T}, X::Vector, h::T) where {T}
-    outerleave_transpose!(T, X, h, g.b, g.n)
+    outerleave_transpose!(X, h, g.b, g.n)
     transpose_to_axes!(X, g.b, g.n)
 end
