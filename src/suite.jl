@@ -41,7 +41,6 @@ end
 
 
 function check_complete_set(gg::HilbertAlgorithm{H}, b, n) where {H}
-# Try a 4d hilbert curve.
 dim_cnt = n
 m = b
 A = axis_type(gg)

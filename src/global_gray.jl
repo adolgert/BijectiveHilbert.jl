@@ -88,7 +88,7 @@ function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
     for i in 0:(b-1)
         for d in 1:n
-            ith_bit = (h & (1 << (i * n + n - d))) >> (i * n + n - d)
+            ith_bit = (h & (one(h) << (i * n + n - d))) >> (i * n + n - d)
             X[d] |= ith_bit << i
         end
     end
@@ -103,7 +103,7 @@ function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
     h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
-            h |= ((X[d] & (1<<i))) << (i*(n - 1) + d - 1)
+            h |= ((X[d] & (one(T)<<i))) << (i*(n - 1) + d - 1)
         end
     end
     h
@@ -114,7 +114,7 @@ function outerleave_transpose_low!(X::Vector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
     for i in 0:(b-1)
         for d in 1:n
-            X[d] |= (h & (1 << (i * n + d - 1))) >> (i * (n - 1) + d - 1)
+            X[d] |= (h & (one(T) << (i * n + d - 1))) >> (i * (n - 1) + d - 1)
         end
     end
 end
