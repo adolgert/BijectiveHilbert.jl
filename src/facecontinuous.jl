@@ -179,28 +179,76 @@ function H_encode!(gg::FaceContinuous, pt::Vector{K}, h::Vector{K}) where {K}
 end
 
 
-function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
-    pt .= zero(K)
+mutable struct FCLevel{K}
+    mask::K
+    i::Int
+    n::Int
+end
+
+
+function FCLevel(fc, ::Type{K}) where {K}
+    # XXX lawder uses wordbits instead of fc.b
+    FCLevel{K}(one(K) << (fc.b - 1), fc.b * fc.n - fc.n, fc.n)
+end
+
+
+function downlevel!(l::FCLevel)
+    l.mask >>= 1
+    l.i -= l.n
+end
+
+
+function index_at_level(H::Vector{K}, l::FCLevel{K}) where {K}
     wordbits = 8 * sizeof(K)
-    mask = one(K) << (gg.b - 1)  # lawder puts wordbits here.
-    i = gg.b * gg.n - gg.n
-    
-    # P is the string of n bits at this level of the curve.
-    element = i ÷ wordbits
+    element = l.i ÷ wordbits
     P = H[element + 1]
-    if (i % wordbits) > (wordbits - gg.n)
+    if (l.i % wordbits) > (wordbits - l.n)
         temp1 = H[element + 2]  # one-based
-        P >>= i % wordbits
-        temp1 <<= wordbits - (i % wordbits)
+        P >>= l.i % wordbits
+        temp1 <<= wordbits - (l.i % wordbits)
         P |= temp1
     else
-        P >>= (i % wordbits)
+        P >>= (l.i % wordbits)
     end
     
     # 	/* the & masks out spurious highbit values */
-    if gg.n < wordbits
-        P &= (one(K) << gg.n) - one(K)
+    if l.n < wordbits
+        P &= (one(K) << l.n) - one(K)
     end
+    P
+end
+
+
+function distribute_to_coords!(bits::K, axes::Vector{K}, l::FCLevel{K}) where K
+    j = l.n - 1
+    while bits > 0
+        if bits & one(K) != 0
+            axes[j + 1] |= l.mask
+        end
+        bits >>= 1
+        j -= 1
+    end
+end
+
+
+function fc_mask_bits(S, xJ, n)
+    if xJ % n != 0
+        temp1 = S >> (xJ % n)
+        temp2 = S << (n - (xJ % n))
+        tS = temp1 | temp2
+        tS &= (one(S) << n) - one(S)
+    else
+        tS = S
+    end
+    tS
+end
+
+
+function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
+    pt .= zero(K)
+    l = FCLevel(gg, K)
+    
+    P = index_at_level(H, l)
 
     # 	/*--- xJ ---*/
     J = gg.n
@@ -217,11 +265,11 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     xJ = J - 1
     
     # 	/*--- S, tS, A ---*/
-    A = S = tS = P ⊻ (P >> 1)    
+    A = S = tS = brgc(P)
     
     # 	/*--- T ---*/
     if P < K(3)
-        T = 0
+        T = zero(K)
     else
         if P % 2 != 0
             T = (P - one(K)) ⊻ ((P - one(K)) >> 1)
@@ -232,75 +280,31 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
     
     # 	/*--- tT ---*/
     tT = T
-    println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT")
+    println("i=$(l.i) mask=$(l.mask) T=$T P=$P, xJ=$xJ, tT=$tT")
 
-    # 	/*--- distrib bits to coords ---*/
-    j = gg.n - 1
-    while P > zero(K)
-        if P & one(K) != 0
-            pt[j + 1] |= mask
-        end
-        P >>= 1
-        j -= 1
-    end
+    distribute_to_coords!(P, pt, l)
     println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
     
     W = zero(K)
-    i -= gg.n
-    mask >>= 1
-    while i >= 0
-        # 		/*--- P ---*/
-        element = i ÷ wordbits
-        P = H[element + 1]
-        if (i % wordbits) > (wordbits - gg.n)
-            temp1 = H[element + 2]
-            P >>= i % wordbits
-            temp1 <<= wordbits - (i % wordbits)
-            P |= temp1
-        else
-            P >>= i % wordbits
-        end
-    
-        # Remove bits above the ones we want.
-        if gg.n < wordbits
-            P &= (one(K) << gg.n) - one(K)
-        end
-    
-        # 		/*--- S ---*/
-        S = P ⊻ (P >> 1)
+    downlevel!(l)
+    while l.i >= 0
+        P = index_at_level(H, l)
+        S = brgc(P)
     
         # 		/*--- tS ---*/
-        if xJ % gg.n != 0
-            temp1 = S >> (xJ % gg.n)
-            temp2 = S << (gg.n - (xJ % gg.n))
-            tS = temp1 | temp2
-            tS &= (one(K) << gg.n) - 1
-        else
-            tS = S
-        end
-        println("i=$i mask=$mask T=$T P=$P, xJ=$xJ, tT=$tT")
+        tS = rotateright(S, xJ, gg.n)
+        println("i=$(l.i) mask=$(l.mask) T=$T P=$P, xJ=$xJ, tT=$tT")
     
-        # 		/*--- W ---*/
         W ⊻= tT
-    
-        # 		/*--- A ---*/
         A = W ⊻ tS
-    
-        # 		/*--- distrib bits to coords ---*/
-        j = gg.n - 1
-        while A > 0
-            if A & one(K) != 0
-                pt[j + 1] |= mask
-            end
-            A >>= 1
-            j -= 1
-        end
+        println("$(typeof(W)) $(typeof(tS)) $(typeof(S)) $(typeof(P))")
+        distribute_to_coords!(A, pt, l)
 		println("pt[0]=$(pt[1]) pt[1]=$(pt[2]) pt[2]=$(pt[3])")
     
-        if i > 0
+        if l.i > 0
             # 			/*--- T ---*/
             if P < K(3)
-                T = 0
+                T = zero(K)
             else
                 if P % 2 != 0
                     T = (P - one(K)) ⊻ ((P - one(K)) >> 1)
@@ -310,14 +314,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
             end
     
             # 			/*--- tT ---*/
-            if xJ % gg.n != 0
-                temp1 = T >> (xJ % gg.n)  # C precedence
-                temp2 = T << (gg.n - (xJ % gg.n))
-                tT = temp1 | temp2
-                tT &= (one(K) << gg.n) - one(K)
-            else
-                tT = T
-            end
+            tT = rotateright(T, xJ, gg.n)
     
             # 			/*--- xJ ---*/
             J = gg.n
@@ -334,8 +331,7 @@ function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
             end
             xJ += J - 1
         end
-        i -= gg.n
-        mask >>= 1
+        downlevel!(l)
     end
 end
 
