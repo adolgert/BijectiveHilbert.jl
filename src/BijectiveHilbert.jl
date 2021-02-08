@@ -3,6 +3,7 @@ module BijectiveHilbert
 include("bitops.jl")
 include("gray_code.jl")
 include("hilbert_algorithm.jl")
+export HilbertAlgorithm
 export index_type
 export encode_hilbert
 export decode_hilbert!
