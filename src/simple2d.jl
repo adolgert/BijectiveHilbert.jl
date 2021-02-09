@@ -69,10 +69,10 @@ end
 
 function decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T) where {A,T}
     r = z & T(3)
-    x, y = A.([(0, 0), (0, 1), (1, 1), (1, 0)][r + 1])
+    x, y = [(zero(A), zero(A)), (zero(A), one(A)), (one(A), one(A)), (one(A), zero(A))][r + 1]
     z >>= 2
     rmin = 2
-    w = one(z) << 1
+    w = one(A) << 1
     while z > zero(T)
         r = z & T(3)
         parity = 2 - rmin&1
@@ -83,7 +83,7 @@ function decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T) where {A,T}
             elseif r == 2
                 x, y = (y + w, x + w)
             elseif r == 3
-                x, y = ((w << 1) - x - one(w), w - y - one(w))
+                x, y = ((w << 1) - x - one(A), w - y - one(A))
             end
         else
             if r == 1
@@ -91,7 +91,7 @@ function decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T) where {A,T}
             elseif r == 2
                 x, y = (y + w, x + w)
             elseif r == 3
-                x, y = (w - x - one(2), (w << 1) - y - one(w))
+                x, y = (w - x - one(A), (w << 1) - y - one(A))
             end
         end
         z >>= 2
