@@ -41,7 +41,7 @@ Included are several variations of the Hilbert curve. They are type-stable and t
 * [`Compact`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/), an n-dimensional curve the permits each axis to be a different size, from Hamilton and Rau-Chaplin.
 * [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/), an n-dimensional curve, the oldest version from Butz and Lawder.
 
-# Hilbert curves for computation
+## Hilbert curves for computation
 
 A video about using Hilbert curves:
 
