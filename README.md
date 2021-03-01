@@ -40,3 +40,5 @@ Included are several variations of the Hilbert curve. They are type-stable and t
 * [`SpaceGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/), an n-dimensional curve with a different path. All axis dimensions must be equal, from Hamilton and Rau-Chaplin.
 * [`Compact`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/), an n-dimensional curve the permits each axis to be a different size, from Hamilton and Rau-Chaplin.
 * [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/), an n-dimensional curve, the oldest version from Butz and Lawder.
+
+[![Hilbert curves for computation](https://youtu.be/MlfS7xo2L7w)
