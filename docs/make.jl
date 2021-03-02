@@ -15,6 +15,7 @@ makedocs(;
         "Home" => "index.md",
         "Usage" => "usage.md",
         "Algorithms" => [
+            "hilbert.md",
             "simple2d.md",
             "globalgray.md",
             "compact.md",
