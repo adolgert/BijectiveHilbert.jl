@@ -45,4 +45,4 @@ Included are several variations of the Hilbert curve. They are type-stable and t
 
 A video about using Hilbert curves:
 
-[![Hilbert curves for computation](docs/src/africa_hilbert.png)](https://youtu.be/MlfS7xo2L7w)
+[![Hilbert curves for computation](docs/src/hilbert_thumb.jpg)](https://youtu.be/MlfS7xo2L7w)
