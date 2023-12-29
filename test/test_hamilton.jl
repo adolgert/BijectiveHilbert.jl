@@ -436,11 +436,11 @@ using BijectiveHilbert: Compact
 using ..HilbertTestSuite: check_own_inverse
 using Random
 rng = MersenneTwister(432479874)
-for n = [5]
+for dimension = [5]
     for i in 1:1
-        ms = rand(rng, 2:5, n)
+        ms = rand(rng, 2:5, dimension)
         gg = Compact(ms)
-        @test check_own_inverse(gg, ms, n)
+        @test check_own_inverse(gg, ms, dimension)
     end
 end
 end

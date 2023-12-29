@@ -12,7 +12,7 @@ Both the [`Compact`](@ref) and [`SpaceGray`](@ref) algorithms use what's called 
 
 4. Continue until sufficient precision has been obtained.
 
-This is a very typical way to generate Hilbert curves, and the algorithm, which I labeled SpaceGray, it their implementation of a classic space key algorithm that relies on Gray codes. They then layer the space key algorithm with a bit-packing algorithm that relies on Gray code rank. This is a mask, to exclude unused bits, and an ordering on the remaining bits that preserves the Hilbert structure.
+This is a very typical way to generate Hilbert curves, and the algorithm, which I labeled SpaceGray, is their implementation of a classic space key algorithm that relies on Gray codes. They then layer the space key algorithm with a bit-packing algorithm that relies on Gray code rank. This is a mask, to exclude unused bits, and an ordering on the remaining bits that preserves the Hilbert structure.
 
 As a note for developers, Hamilton's original tech report [^2] has errors that look, to me, like he developed the work for two dimensions and expanded it, incompletely, for n dimensions. It's impressively-detailed math that leads to a concise formulation. I wouldn't have figured out the problems, except that there is a copy of [Hamilton's code](https://github.com/pdebuyl/libhilbert), that he, himself, corrected.
 
