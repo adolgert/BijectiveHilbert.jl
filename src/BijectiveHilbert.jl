@@ -15,9 +15,7 @@ export decode_hilbert_zero!
 
 include("hamilton.jl")
 export SpaceGray
-export Compact
 
-# include("bijective.jl")
 include("simple2d.jl")
 import .Bijective: Simple2D
 

@@ -180,3 +180,28 @@ end
         end
     end
 end
+
+
+@safetestset globalgray_own_inv = "GlobalGray is own inverse" begin
+    using BijectiveHilbert: GlobalGray
+    using ..HilbertTestSuite: check_own_inverse
+    for n in 2:5
+        for b in 2:4
+            gg = GlobalGray(b, n)
+            @test check_own_inverse(gg, b, n)
+        end
+    end
+end
+
+
+@safetestset globalgray_complete_set = "GlobalGray is complete set" begin
+    using BijectiveHilbert: GlobalGray
+    using ..HilbertTestSuite: check_complete_set
+    for n in [2, 3, 5]
+        for b in [2, 3]
+            fc = GlobalGray(b, n)
+            @test check_complete_set(fc, b, n)
+        end
+    end
+    end
+    
