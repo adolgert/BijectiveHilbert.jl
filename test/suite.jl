@@ -21,13 +21,13 @@ function check_own_inverse(gg::HilbertAlgorithm, b::Int, n)
         decode_hilbert_zero!(gg, p, H(h))
         for idx in 1:n
             if p[idx] < 0 || p[idx] >= extent
-                success = false
                 println("for b $(b) value is $(p)")
+                return false
             end
         end
         h2 = encode_hilbert_zero(gg, p)
         if h2 != H(h)
-            success = false
+            return false
         end
     end
     success
@@ -53,13 +53,14 @@ function check_own_inverse(gg::HilbertAlgorithm, ms::Vector{Int}, n)
         h = encode_hilbert_zero(gg, p)
         for idx in 1:n
             if p[idx] < 0 || p[idx] >= ms[idx]
-                success = false
+                println("for dimensions $(ms) value is $(p)")
+                return false
             end
         end
         q = similar(p)
         decode_hilbert_zero!(gg, q, h)
         if p != q
-            success = false
+            return false
         end
         for inc in 1:n
             p[inc] += one(A)

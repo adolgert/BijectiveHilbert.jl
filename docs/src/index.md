@@ -34,5 +34,4 @@ Included are several variations of the Hilbert curve. They are type-stable and t
 * [`Simple2D`](@ref), shown above, two-dimensional. Doesn't need to know axis dimensions, from Chen, Wang, and Shi.
 * [`GlobalGray`](@ref), an n-dimensional curve where all axis dimensions must be equal, from Skilling.
 * [`SpaceGray`](@ref), an n-dimensional curve with a different path. All axis dimensions must be equal, from Hamilton and Rau-Chaplin.
-* [`Compact`](@ref), an n-dimensional curve the permits each axis to be a different size, from Hamilton and Rau-Chaplin.
 * [`FaceContinuous`](@ref), an n-dimensional curve, the oldest version from Butz and Lawder.
