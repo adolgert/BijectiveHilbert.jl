@@ -11,17 +11,15 @@ jobs:
       matrix:
         version:
           - '1.6'
-          - '1.7'
-          - '1.8'
           - '1.9'
-          - '^1.10.0-0'
+          - '1.10'
         os:
           - ubuntu-latest
         include:
-          - version: "1.9"
+          - version: "1.10"
             os: macOS-latest
             arch: x64
-          - version: "1.9"
+          - version: "1.10"
             os: windows-latest
             arch: x64
         arch:
