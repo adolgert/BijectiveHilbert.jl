@@ -10,9 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - 'lts'
+          - '1.6'
           - '1.11'
-          - '1.12.0-beta1'
         os:
           - ubuntu-latest
         include:
