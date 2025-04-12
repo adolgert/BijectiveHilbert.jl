@@ -335,6 +335,7 @@ function first_set_bit(i::T)::Int where {T <: Integer}
             return j + 1
         end
     end
+    return 0 # for obvious type stability
 end
 
 
@@ -485,26 +486,4 @@ function first_set_bit(i::UInt8)::Int
         c ⊻= 1
     end
     c + one(Int)
-end
-
-
-function getloc_case(p, n, i, l, case)
-    if case == 1
-        if (n <= i + 1) && (p[i] & im != 0)
-            l | (1 << i)
-        else
-            l
-        end
-    else
-        l = getloc_case(p, n, i + case >> 1, l, case >> 1)
-        getloc_case(p, n, i, l, case >> 1)
-    end 
-end
-
-
-function get_location(p::Vector{T}, n, i) where {T}
-    im = one(T) << i
-    # p, jo=0, jn=n, ir=0, im=1<<i, l is return
-    l = 0
-    getloc_case(p, n, 0, l, 8 * sizeof(T))
 end
