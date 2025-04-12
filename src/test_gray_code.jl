@@ -1,4 +1,6 @@
-@safetestset gray_code_symmetry = "Gray code symmetry" begin
+using TestItems
+
+@testitem "Gray code symmetry" begin
 using BijectiveHilbert
 # for i in 0:10
 #     println(lpad(i, 3, " "), " ", lpad(string(BijectiveHilbert.brgc(i), base = 2), 8, "0"))
@@ -11,7 +13,7 @@ for i in 0x0:(0x1 << n - 0x1)
 end
 end
 
-@safetestset gray_code_single = "Gray code changes one bit" begin
+@testitem "Gray code changes one bit" begin
 using BijectiveHilbert: brgc, is_power_of_two
 for i in 0x1:0x1000
     @test is_power_of_two(brgc(i) ⊻ brgc(i + 1))
@@ -19,7 +21,7 @@ end
 end
 
 
-@safetestset brgc_own_inverse = "Gray code is own inverse" begin
+@testitem "Gray code is own inverse" begin
 using BijectiveHilbert
 for i in 0x0:0x1000
     @test(BijectiveHilbert.brgc_inv(BijectiveHilbert.brgc(i)) == i)
@@ -27,7 +29,7 @@ end
 end
 
 
-@safetestset brgc_equals_naive = "Gray code matches paper description" begin
+@testitem "Gray code matches paper description" begin
 using BijectiveHilbert: brgc_inv
 using Random
 rng = MersenneTwister(9719742)
@@ -42,7 +44,7 @@ end
 end
 
 
-@safetestset brgc_ranks_equal = "the rank calculation is the same as the paper" begin
+@testitem "the rank calculation is the same as the paper" begin
     using BijectiveHilbert: brgc_rank, brgc_rank2
     using Random
     rng = MersenneTwister(974073242)

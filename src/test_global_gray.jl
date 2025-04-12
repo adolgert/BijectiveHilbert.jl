@@ -1,4 +1,6 @@
-@safetestset compare_with_cpp = "the c++ implementation is identical" begin
+using TestItems
+
+@testitem "the c++ implementation is identical" begin
 if isfile("test/libskilling.so")
 function TransposetoAxes!(X::Vector{UInt}, b::Int, n::Int)
     ccall(
@@ -37,7 +39,7 @@ end
 
 
 # Implementation test
-@safetestset interleave_single = "interleave single example" begin
+@testitem "interleave single example" begin
 using BijectiveHilbert
 t = UInt8[0b1100, 0b0110, 0b0011]
 b = 4
@@ -48,7 +50,7 @@ end
 
 
 # Implementation test
-@safetestset interleave_outerleave = "outerleave is opposite" begin
+@testitem "outerleave is opposite" begin
 using BijectiveHilbert
 n = 3
 b = 4
@@ -61,7 +63,7 @@ end
 end
 
 
-@safetestset inverse_of_itself = "GlobalGray is its own inverse" begin
+@testitem "GlobalGray is its own inverse" begin
 using BijectiveHilbert
 using Random
 rng = MersenneTwister(29472349)
@@ -80,17 +82,17 @@ end
 end
 
 
-@safetestset hilbert_one_diff = "GlobalGray values next to each other" begin
+@testitem "GlobalGray values next to each other" setup=[HilbertTestSuite] begin
 using BijectiveHilbert: GlobalGray
-using ..HilbertTestSuite: check_complete_set
+
 n = 3
 b = 4
 gg = GlobalGray(b, n)
-@test check_complete_set(gg, b, n)
+@test HilbertTestSuite.check_complete_set(gg, b, n)
 end
 
 
-@safetestset globalgray_against_file = "globalgray agrees with C code" begin
+@testitem "globalgray agrees with C code" begin
 function read_skill(fn)
     lines = readlines(fn)
     xyz = zeros(Int, 3, length(lines))
@@ -134,7 +136,7 @@ end
 end
 
 
-@safetestset globalgray_type_interactions = "GlobalGray type interactions" begin
+@testitem "GlobalGray type interactions" begin
     using BijectiveHilbert
     using UnitTestDesign
     using Random
@@ -164,7 +166,7 @@ end
             X = zeros(A, D)
             hlarr = vcat(C:min(mid, few), max(mid + 1, last - few):last)
             for hl in hlarr
-                hli = I(hl)
+                local hli = I(hl)
                 if C == 0
                     decode_hilbert_zero!(gg, X, hli)
                     hl2 = encode_hilbert_zero(gg, X)
@@ -182,25 +184,23 @@ end
 end
 
 
-@safetestset globalgray_own_inv = "GlobalGray is own inverse" begin
+@testitem "GlobalGray is own inverse" setup=[HilbertTestSuite] begin
     using BijectiveHilbert: GlobalGray
-    using ..HilbertTestSuite: check_own_inverse
     for n in 2:5
         for b in 2:4
             gg = GlobalGray(b, n)
-            @test check_own_inverse(gg, b, n)
+            @test HilbertTestSuite.check_own_inverse(gg, b, n)
         end
     end
 end
 
 
-@safetestset globalgray_complete_set = "GlobalGray is complete set" begin
+@testitem "GlobalGray is complete set" setup=[HilbertTestSuite] begin
     using BijectiveHilbert: GlobalGray
-    using ..HilbertTestSuite: check_complete_set
     for n in [2, 3, 5]
         for b in [2, 3]
             fc = GlobalGray(b, n)
-            @test check_complete_set(fc, b, n)
+            @test HilbertTestSuite.check_complete_set(fc, b, n)
         end
     end
     end

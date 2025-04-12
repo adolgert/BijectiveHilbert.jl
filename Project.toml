@@ -3,7 +3,15 @@ uuid = "91e7fc40-53cd-4118-bd19-d7fcd1de2a54"
 authors = ["Andrew Dolgert <adolgert@uw.edu>"]
 version = "0.4.0"
 
+[deps]
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+UnitTestDesign = "239896fa-e45a-40e8-9993-3c434b0bc450"
+
 [compat]
+Random = "1.11.0"
+TestItems = "1.0.0"
+UnitTestDesign = "0.4.0"
 julia = "^1.2"
 
 [extras]
