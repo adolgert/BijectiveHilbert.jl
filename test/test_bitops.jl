@@ -1,4 +1,4 @@
-using TestItems
+using TestItemRunner
 
 @testitem "log base two agrees with float version" begin
 using BijectiveHilbert

@@ -1,4 +1,4 @@
-using TestItems
+using TestItemRunner
 
 @testitem "Gray code symmetry" begin
 using BijectiveHilbert

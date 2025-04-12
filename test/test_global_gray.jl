@@ -1,4 +1,4 @@
-using TestItems
+using TestItemRunner
 
 @testitem "the c++ implementation is identical" begin
 if isfile("test/libskilling.so")

@@ -1,4 +1,4 @@
-using TestItems
+using TestItemRunner
 
 @testitem "g is the direction of gray code" begin
 using BijectiveHilbert: brgc, hi_g

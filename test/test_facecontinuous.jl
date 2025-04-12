@@ -1,4 +1,4 @@
-using TestItems
+using TestItemRunner
 
 
 @testitem "FaceContinuous basic test" begin
