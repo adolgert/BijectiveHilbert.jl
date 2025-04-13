@@ -50,7 +50,7 @@ axis_type(gg::FaceContinuous) = large_enough_unsigned(gg.b)
 g_mask(::Type{A}, n, iz) where {A} = one(A) << (n - iz - 1)
 
 
-function H_encode!(gg::FaceContinuous, pt::Vector{K}, h::Vector{K}) where {K}
+function H_encode!(gg::FaceContinuous{F}, pt::Vector{K}, h::Vector{K}) where {K,F}
     wordbits = 8 * sizeof(K)
     W = zero(K)
     P = zero(K)
@@ -278,7 +278,7 @@ function fc_flip(P::K) where {K}
 end
 
 
-function H_decode!(gg::FaceContinuous, H::Vector{K}, pt::Vector{K}) where {K}
+function H_decode!(gg::FaceContinuous{F}, H::Vector{K}, pt::Vector{K}) where {K,F}
     pt .= zero(K)
     l = FCLevel(gg, K)
     P = index_at_level(H, l)
@@ -316,7 +316,7 @@ end
 
 function encode_hilbert_zero(fc::FaceContinuous{T}, X::Vector{A})::T where {A,T}
     hvec = zeros(A, fc.n)
-    H_encode!(fc::FaceContinuous, X, hvec)
+    H_encode!(fc, X, hvec)
     # Encoding packs H into a vector of A, using all bits in the A type.
     h = zero(T)
     for i in fc.n:-1:1
@@ -334,5 +334,5 @@ function decode_hilbert_zero!(fc::FaceContinuous{T}, X::Vector{A}, h::T) where {
         hvec[i] |= h & ~zero(A)
         h >>= 8 * sizeof(A)
     end
-    H_decode!(fc::FaceContinuous, hvec, X)
+    H_decode!(fc, hvec, X)
 end

@@ -1,5 +1,6 @@
+using TestItemRunner
 
-@safetestset hi_g_definition = "g is the direction of gray code" begin
+@testitem "g is the direction of gray code" begin
 using BijectiveHilbert: brgc, hi_g
 for i in 0:1000
     @test brgc(i) ⊻ brgc(i + 1) == 1<<hi_g(i)
@@ -8,7 +9,7 @@ end
 end
 
 
-@safetestset binary_reflection_of_gc = "gray code is binary reflected" begin
+@testitem "gray code is binary reflected" begin
 using BijectiveHilbert: brgc
 n = 10
 for i in 0:(1<<n - 1)
@@ -17,7 +18,7 @@ end
 end
 
 
-@safetestset hi_g_matches_long_form = "hi_g is the same as its definition" begin
+@testitem "hi_g is the same as its definition" begin
 using BijectiveHilbert: hi_g, hi_g_orig
 for i = 0:100
     @test hi_g(i) == hi_g_orig(i)
@@ -25,7 +26,7 @@ end
 end
 
 
-@safetestset hi_g_symmetry = "hi_g symmetry invariant" begin
+@testitem "hi_g symmetry invariant" begin
 using BijectiveHilbert: brgc, hi_g, bshow
 # n = 3
 # for i in 0:(1<<n)
@@ -47,7 +48,7 @@ end
 end
 
 
-@safetestset efdg_match_table = "directions match figure 5 in hamilton report" begin
+@testitem "directions match figure 5 in hamilton report" begin
 using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
 n = 2
 trials = [
@@ -70,7 +71,7 @@ end
 
 # The 2d example in the paper has a simpler 1d equivalent,
 # which is two segments in a row. d=0 for both. f is 1.
-@safetestset efdg_match_1d = "directions match a one-dimensional equivalent" begin
+@testitem "directions match a one-dimensional equivalent" begin
 using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
 n = 1
 trials = [
@@ -88,7 +89,7 @@ end
 
 
 # A 3d example.
-@safetestset efdg_match_3d = "directions match a three-dimensional equivalent" begin
+@testitem "directions match a three-dimensional equivalent" begin
 using BijectiveHilbert: hi_e, hi_f, hi_d, hi_g
 n = 3
 trials = [
@@ -111,7 +112,7 @@ end
 end
 
 
-@safetestset hi_e_matches_float_version = "hi_e matches its floating point version" begin
+@testitem "hi_e matches its floating point version" begin
 using BijectiveHilbert: hi_e, hi_e_orig
 # Show our implementation for hi_e matches the specification.
 for i = 1:100
@@ -120,7 +121,7 @@ end
 end
 
 
-@safetestset cubes_neighbor_along_g_coord = "cubes are neighbors along gth coordinate" begin
+@testitem "cubes are neighbors along gth coordinate" begin
 # From page 12, just below the figure. The definition of the directions.
 using BijectiveHilbert: hi_e, hi_f, hi_g
 for n in 2:5
@@ -138,7 +139,7 @@ end
 end
 
 
-@safetestset hi_d_symmetry_invariant = "hi_d symmetry invariant works corollary 2.7" begin
+@testitem "hi_d symmetry invariant works corollary 2.7" begin
 using BijectiveHilbert: hi_d, bshow
 # n = 3
 # for i = 0:(1<<n)
@@ -157,7 +158,7 @@ end
 end
 
 
-@safetestset hi_d_compare_g = "hi_d equals hi_g at 2n-1 lemma 2.8" begin
+@testitem "hi_d equals hi_g at 2n-1 lemma 2.8" begin
 using BijectiveHilbert: hi_d, hi_g
 for n = 1:5
     d = hi_d(1<<n - 1, n)
@@ -167,7 +168,7 @@ end
 end
 
 
-@safetestset hi_d_compares_with_g = "hi_d equals g for mod 2" begin
+@testitem "hi_d equals g for mod 2" begin
 using BijectiveHilbert: hi_d, hi_g
 for n = 2:5
     for i = 0:(1<<n - 1)
@@ -186,7 +187,7 @@ end
 end
 
 
-@safetestset hi_edg_invariant = "hi e, d, g invariant is consistent" begin
+@testitem "hi e, d, g invariant is consistent" begin
 using BijectiveHilbert: hi_d, hi_e, hi_g
 # invariant for e, d, and g. pg. 11. Eq. 1.
 # Contrary to the tech report, this is NOT true for 2^n-1.
@@ -197,7 +198,7 @@ end
 end
 
 
-@safetestset hi_e_reflection = "hi_e reflects to f" begin
+@testitem "hi_e reflects to f" begin
 using BijectiveHilbert: hi_d, hi_e, hi_f
 n = 5
 for i = 0:(1<<n - 1)
@@ -211,7 +212,7 @@ end
 end
 
 
-@safetestset rotation_invariant_zero = "rotation invariant on hi_e is zero" begin
+@testitem "rotation invariant on hi_e is zero" begin
 using BijectiveHilbert: hi_T, hi_e, hi_d
 # lemma 2.11, page 15
 # Assert T_{e,d}(e) == 0
@@ -235,7 +236,7 @@ end
 # Also NOT true
 
 
-@safetestset ef_invariant = "ef relationship holds" begin
+@testitem "ef relationship holds" begin
 using BijectiveHilbert: hi_e, hi_f
 # invariant bottom of pg. 11. Lemma 2.6.
 # fails for i=0 and i=2^n
@@ -251,7 +252,7 @@ end
 end
 
 
-@safetestset inverse_t_itself = "transform is its own inverse" begin
+@testitem "transform is its own inverse" begin
 using BijectiveHilbert: hi_d, hi_e, hi_T, hi_T_inv
 # Check that the inverse of T is an inverse.
 n = 3
@@ -270,7 +271,7 @@ end
 end
 
 
-@safetestset get_ith_bit_trials = "trials show can get ith bit of vectors" begin
+@testitem "trials show can get ith bit of vectors" begin
 using BijectiveHilbert: ith_bit_of_indices, get_location
 
 v = [0b01110100, 0b01101010, 0b01011001]
@@ -292,7 +293,7 @@ end
 end
 
 
-@safetestset ith_bit_types = "ith_bit ops use all types" begin
+@testitem "ith_bit ops use all types" begin
 using BijectiveHilbert: ith_bit_of_indices, set_indices_bits!
 using Random
 rng = MersenneTwister(4972433234)
@@ -313,17 +314,16 @@ end
 end
 
 
-@safetestset hilbert_index_complete4d = "hilbert index is a complete set for 4d" begin
+@testitem "hilbert index is a complete set for 4d" setup=[HilbertTestSuite] begin
 using BijectiveHilbert: SpaceGray
-using ..HilbertTestSuite: check_complete_set
 b = 3
 n = 4
 gg = SpaceGray(b, n)
-@test check_complete_set(gg, b, n)
+@test HilbertTestSuite.check_complete_set(gg, b, n)
 end
 
 
-# @safetestset hilbert_index_paper_tr = "paper and techreport agree" begin
+# @testitem hilbert_index_paper_tr = "paper and techreport agree" begin
 # using BijectiveHilbert: hilbert_index, hilbert_index_paper
 # They do NOT agree.
 # m = 0x4  # One larger won't fit into a byte and must fail.
@@ -341,7 +341,7 @@ end
 # end
 
 
-@safetestset libhilbert_matches = "libhilbert output matches" begin
+@testitem "libhilbert output matches" begin
 using BijectiveHilbert: SpaceGray, encode_hilbert_zero
 n = 4
 b = 5
@@ -366,7 +366,7 @@ end
 end
 
 
-@safetestset correct_bits_set_in_indices = "indices bits match" begin
+@testitem "indices bits match" begin
 using BijectiveHilbert: set_indices_bits!
 m = 3
 i = 4
@@ -377,19 +377,18 @@ set_indices_bits!(p, l, m, i)
 end
 
 
-@safetestset paper_inv = "paper hilbert is own inverse" begin
+@testitem "paper hilbert is own inverse" setup=[HilbertTestSuite] begin
 using BijectiveHilbert: SpaceGray
-using ..HilbertTestSuite: check_own_inverse
 for n in 2:5
     for b in 2:4
         gg = SpaceGray(b, n)
-        @test check_own_inverse(gg, b, n)
+        @test HilbertTestSuite.check_own_inverse(gg, b, n)
     end
 end
 end
 
 
-@safetestset brgc_mask_equal = "mask calculation matches paper" begin
+@testitem "mask calculation matches paper" begin
 using BijectiveHilbert: extract_mask, extract_mask_paper, hi_d
 using Random
 rng = MersenneTwister(974073242)
@@ -405,7 +404,7 @@ end
 end
 
 
-@safetestset spacegray_type_interactions = "SpaceGray type interactions" begin
+@testitem "SpaceGray type interactions" begin
     using BijectiveHilbert
     using UnitTestDesign
     using Random
@@ -435,7 +434,7 @@ end
             X = zeros(A, D)
             hlarr = vcat(C:min(mid, few), max(mid + 1, last - few):last)
             for hl in hlarr
-                hli = I(hl)
+                local hli = I(hl)
                 if C == 0
                     decode_hilbert_zero!(gg, X, hli)
                     hl2 = encode_hilbert_zero(gg, X)
@@ -456,14 +455,14 @@ end
 end
 
 
-@safetestset spacegray_random = "spacegray random" begin
+@testitem "spacegray random" begin
 using BijectiveHilbert
 aas = [Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128]
 tts = [UInt16, Int32, UInt32, Int64, UInt64, Int128, UInt128]
 ggbase = SpaceGray(UInt32, 4, 4)
-hli = UInt32(2)
+atwo = UInt32(2)
 Xbase = zeros(UInt8, 4)
-decode_hilbert_zero!(ggbase, Xbase, hli)
+decode_hilbert_zero!(ggbase, Xbase, atwo)
 
 for idx in Base.IteratorsMD.CartesianIndices((length(aas), length(tts)))
     i, j = Tuple(idx)

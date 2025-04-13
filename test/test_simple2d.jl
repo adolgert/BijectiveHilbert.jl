@@ -1,5 +1,7 @@
+using TestItemRunner
 
-@safetestset hilbert_decode_zero = "hilbert decode zero" begin
+
+@testitem "hilbert decode zero" begin
   using BijectiveHilbert
   table2 = [
     15 12 11 10
@@ -21,27 +23,25 @@
 end
 
 
-@safetestset simple2d_own_inverse = "simple2d is its own inverse" begin
+@testitem "simple2d is its own inverse" setup=[HilbertTestSuite] begin
   using BijectiveHilbert: Simple2D
-  using ..HilbertTestSuite: check_own_inverse
   gg = Simple2D(Int)
   for b in 2:7
-    @test check_own_inverse(gg, b, 2)
+    @test HilbertTestSuite.check_own_inverse(gg, b, 2)
   end
 end
 
 
-@safetestset simple2d_complete_set = "simple2d is a complete set" begin
+@testitem "simple2d is a complete set" setup=[HilbertTestSuite] begin
   using BijectiveHilbert: Simple2D
-  using ..HilbertTestSuite: check_complete_set
   gg = Simple2D(Int)
   for b in 2:7
-    @test check_complete_set(gg, b, 2)
+    @test HilbertTestSuite.check_complete_set(gg, b, 2)
   end
 end
 
 
-@safetestset simple2d_type_interactions = "Simple2D type interactions" begin
+@testitem "Simple2D type interactions" begin
     using BijectiveHilbert
     using UnitTestDesign
     using Random
@@ -71,7 +71,7 @@ end
             X = zeros(A, D)
             hlarr = vcat(C:min(mid, few), max(mid + 1, last - few):last)
             for hl in hlarr
-                hli = I(hl)
+                local hli = I(hl)
                 if C == 0
                     decode_hilbert_zero!(gg, X, hli)
                     hl2 = encode_hilbert_zero(gg, X)

@@ -1,4 +1,7 @@
-@safetestset facecontinuous_smoke = "FaceContinuous basic test" begin
+using TestItemRunner
+
+
+@testitem "FaceContinuous basic test" begin
 # Test using the vector form of the Hilbert index so that we don't
 # introduce another layer of error. When this works, delete it.
 using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!, msb
@@ -23,7 +26,7 @@ H_decode!(fc2, hvec2, X2)
 end
 
 
-@safetestset facecontinuous_api = "FaceContinuous api test" begin
+@testitem "FaceContinuous api test" begin
 # Test using the vector form of the Hilbert index so that we don't
 # introduce another layer of error. When this works, delete it.
 using BijectiveHilbert: FaceContinuous, encode_hilbert_zero, decode_hilbert_zero!
@@ -49,25 +52,23 @@ decode_hilbert_zero!(fc, X3, h)
 end
 
 
-@safetestset facecontinuous_own_inverse = "FaceContinuous is its own inverse" begin
+@testitem "FaceContinuous is its own inverse" setup=[HilbertTestSuite] begin
 using BijectiveHilbert: FaceContinuous
-using ..HilbertTestSuite: check_own_inverse
 for n in [2, 3, 5]
     for b in [2, 3]
         fc = FaceContinuous(b, n)
-        @test check_own_inverse(fc, b, n)
+        @test HilbertTestSuite.check_own_inverse(fc, b, n)
     end
 end
 end
 
 
-@safetestset facecontinuous_complete_set = "FaceContinuous is complete set" begin
+@testitem "FaceContinuous is complete set" setup=[HilbertTestSuite] begin
 using BijectiveHilbert: FaceContinuous
-using ..HilbertTestSuite: check_complete_set
 for n in [2, 3, 5]
     for b in [2, 3]
         fc = FaceContinuous(b, n)
-        @test check_complete_set(fc, b, n)
+        @test HilbertTestSuite.check_complete_set(fc, b, n)
     end
 end
 end

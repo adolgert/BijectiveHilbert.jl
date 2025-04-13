@@ -1,4 +1,6 @@
-@safetestset log_base_two_float = "log base two agrees with float version" begin
+using TestItemRunner
+
+@testitem "log base two agrees with float version" begin
 using BijectiveHilbert
 for i in 1:100
     m = BijectiveHilbert.log_base2(i) + 1
@@ -9,7 +11,7 @@ end
 end
 
 
-@safetestset bitrotate_left = "rotateleft cases" begin
+@testitem "rotateleft cases" begin
 using BijectiveHilbert    
 tries = [
     Any[0b1, 0b100, 2, 8],
@@ -31,7 +33,7 @@ end
 end
 
 
-@safetestset bitrotate_right = "rotateright cases" begin
+@testitem "rotateright cases" begin
 using BijectiveHilbert
 tries = [
     Any[0b1, 0b10000000, 1, 8],
@@ -53,7 +55,7 @@ end
 end
 
 
-@safetestset rotateright_random = "rotateright random" begin
+@testitem "rotateright random" begin
     using BijectiveHilbert: fbvn1s, rotateright, rotateright_naive
     using Random
     rng = MersenneTwister(9871879147)
@@ -71,7 +73,7 @@ end
 end
 
 
-@safetestset rotateleft_random = "rotateleft random" begin
+@testitem "rotateleft random" begin
     using BijectiveHilbert: fbvn1s, rotateleft, rotateleft_naive
     using Random
     rng = MersenneTwister(9871879147)
@@ -89,7 +91,7 @@ end
 end
 
 
-@safetestset reverse_trials = "reversebits trials" begin
+@testitem "reversebits trials" begin
 using BijectiveHilbert: reverse_bits
 trials = [
     (0b11001, 5, 0b10011),
@@ -103,7 +105,7 @@ end
 end
 
 
-@safetestset setbits_trials = "setbits does some sets" begin
+@testitem "setbits does some sets" begin
     using BijectiveHilbert: set_bits, set_bits_naive
     trials = [
         [0b0, 2, 0, 0b11, 0b11],
@@ -122,7 +124,7 @@ end
 end
 
 
-@safetestset setbits_agrees = "setbits is same as hamilton" begin
+@testitem "setbits is same as hamilton" begin
     using BijectiveHilbert: set_bits, set_bits_naive
     using Random
     rng = MersenneTwister(82147985)
@@ -138,7 +140,7 @@ end
 end
 
 
-@safetestset getbits_examples = "getbits trials" begin
+@testitem "getbits trials" begin
 using BijectiveHilbert: get_bits
     trials = [
         (0b1, 1, 0, 0b1),
@@ -183,7 +185,7 @@ using BijectiveHilbert: get_bits
 end
 
 
-@safetestset fsb_trials = "first_set_bit unsigned trials" begin
+@testitem "first_set_bit unsigned trials" begin
 using BijectiveHilbert: first_set_bit
     trials = [
         (0b0, 0),
@@ -212,7 +214,7 @@ using BijectiveHilbert: first_set_bit
 end
 
 
-@safetestset fsb_unsigned = "first_set_bit signed matches signed" begin
+@testitem "first_set_bit signed matches signed" begin
 using BijectiveHilbert: first_set_bit
 using Random
 trials = [Int8, Int16, Int32, Int64]

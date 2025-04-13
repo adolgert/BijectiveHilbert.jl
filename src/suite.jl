@@ -1,8 +1,12 @@
+using TestItems
+
 # This is a test suite that should work for every Hilbert curve.
-module HilbertTestSuite
+@testmodule HilbertTestSuite begin
+
 using BijectiveHilbert: HilbertAlgorithm, decode_hilbert_zero!, encode_hilbert_zero
 using BijectiveHilbert: index_type, axis_type
 
+export check_own_inverse, check_complete_set
 
 """
     check_own_inverse(algorithm, extent, dimensions)
