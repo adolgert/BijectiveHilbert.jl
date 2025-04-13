@@ -4,68 +4,42 @@ CurrentModule = BijectiveHilbert
 
 # Usage
 
-All of the Hilbert algorithms have the same interface.
-
-## Decide dimensions of the spatial axes
-
-All of the algorithms, except [`Simple2D`](@ref), need to know ahead of time the extent of the coordinate system. If the Hilbert curve will be in a 32 x 32 space, then the dimension is 2, and it needs `log2(32)=5` bits of resolution in both directions. For [`GlobalGray`](@ref), that's `b=5`, `n=2`. If the sizes aren't powers of two or are uneven, then set the bits to cover the largest side, so (12 x 12 x 12 x 800) would be `b=10`, `n=4` because ``800 < 2^{10}``. There is one algorithm that deals better with uneven sides. The [`Compact`](@ref) algorithm can pack bits together so that the resulting Hilbert index takes less storage space. This is usually used for database storage. It could take (12 x 12 x 12 x 800) as `Compact([4, 4, 4, 10])` which results in a 24-bit integer that can be stored in a UInt32.
-
-## Create an algorithm
-
-For most Hilbert curve algorithms, you have to say, beforehand, how large the multidimensional coordinates are, in powers of two. For instance, a three-dimensional grid can have values from 1 to 16 in each dimension, so `n = 3` and `b = 4` because `16 = 2^b`.
+## Create an encoder
 
 ```julia
-using BijectiveHilbert
-dimensions = 3
-bits = 4
-simple = Simple2D(Int)
-gg = GlobalGray(UInt, bits, dimensions)
-sg = SpaceGray(UInt, bits, dimensions)
-compact = Compact(UInt, fill(bits, dimensions))
+    simple = Simple2D(HilbertType)
+    sg = SpaceGray(HilbertType, bits, dimensions)
+    gg = GlobalGray(HilbertType, bits, dimensions)
+    sg = FaceContinuous(HilbertType, bits, dimensions)
 ```
 
-The first argument is a datatype for the Hilbert index. It should be large enough to hold all of the bits from the n-dimensional axes. If you don't specify one, it will use the smallest unsigned integer that can hold them.
+  * `HilbertType` is an unsigned integer DataType large enough to hold the HilbertIndex. The returned HilbertIndex will have this type. Examples are `UInt32` and `UInt128`.
 
-Note that the [`Compact`](@ref) algorithm can have different sizes for each dimension, but they are all powers of two. It produces a Hilbert index that uses only as many bits as necessary.
+  * `bits` is the maximum bit width of a DataType that can hold the Cartesian index in each dimension. If `bits` is 7, that means all indices are between 1 and `128=2^7` or between 0 and `127=2^7-1`.
+
+  * `dimension` is the integer number of Cartesian dimensions.
+
+[`Simple2D`](@ref) doesn't need to know dimensions ahead of time.
 
 
-## Encode and decode
-
-You can encode from n-dimensions to the Hilbert index, or you can decode from a Hilbert index to n-dimensions.
+## Encode and Decode
 
 ```julia
-for algorithm in [simple, gg, sg, compact]
-    for k in 1:(1<<bits)
-        for j in 1:(1<<bits)
-            for i in 1:(1<<bits)
-                X = [i, j, k]
-                h = encode_hilbert(algorithm, X)
-                X .= 0
-                decode_hilbert!(algorithm, X, h)
-            end
-        end
-    end
-end
+    hilbert_index = encode_hilbert(encoder, cartesian::AbstractVector)
+    decode_hilbert!(encoder, cartesian, hilbert_index)
 ```
-
-## Encode and decode with a zero-based value
-
-The underlying algorithms use a zero-based axis and a zero-based Hilbert index. These are available, too.
+This converts from Cartesian indices in a vector to an integer Hilbert index. Then it converts back to Cartesian. decoding overwrites the cartesian array values. The input Cartesian vector may have any AbstractVector type. It can be faster if you use a `StaticArrays.MVector` of fixed size.
 
 ```julia
-for algorithm in [simple, gg, sg, compact]
-    for k in 0:(1<<bits - 1)
-        for j in 0:(1<<bits - 1)
-            for i in 0:(1<<bits - 1)
-                X = [i, j, k]
-                h = encode_hilbert_zero(algorithm, X)
-                X .= 0
-                decode_hilbert_zero!(algorithm, X, h)
-            end
-        end
-    end
-end
+    hilbert_index = encode_hilbert_zero(encoder, cartesian::AbstractVector)
+    decode_hilbert_zero!(encoder, cartesian, hilbert_index)
 ```
+These are the same as above, but they use zero-based indices. The one-based are a layer on top of these zero-based implementations.
+
+
+## Example bit calculations
+
+If the Hilbert curve will be in a 32 x 32 space, then the dimension is 2, and it needs `log2(32)=5` bits of resolution in both directions. For [`GlobalGray`](@ref), that's `b=5`, `n=2`. If the sizes aren't powers of two or are uneven, then set the bits to cover the largest side, so (12 x 12 x 12 x 800) would be `b=10`, `n=4` because ``800 < 2^{10}``.
 
 
 # Index

@@ -1,5 +1,7 @@
 # Face Continuous
 
+See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+
 This is the OG Hilbert code, where the first implementation of encoding came from a paper by Butz [^1] and, later, Lawder [^2] provided the decoding algorithm. It's called `FaceContinuous` because that was its main cited property in a review of Hilbert curves [^3].
 
 For developers, there are two errors in the [code that Lawder corrected](http://www.dcs.bbk.ac.uk/~jkl/publications.html). The first is that there is a single-bit mask, called `mask`, that should be initialized from the number of levels, not from the size of the data type. This is true for both encoding and decoding. The second is that, during decoding, the first assignment, to the highest bit of the coordinates, assigns directly from P, the highest Hilbert index bits. It should assign from `A`, which is the binary-reflected Gray code of the highest bits. These problems wouldn't show up in testing unless the highest bits in the type were used, which is an understandable oversight.

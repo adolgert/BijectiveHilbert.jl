@@ -42,7 +42,6 @@ There are multiple Hilbert curves. There is even a paper called, "How many three
 
 For use in scientific computing, it may be more important to judge different Hilbert curve algorithms on capability, speed, and relaxation of constraints.
 
-* The [`Compact`](@ref) algorithm creates a Hilbert curve where each axis can have a size that's a different power of two.
 * The [`Simple2D`](@ref) algorithm doesn't need to know how large the axes may be before you use it, but it only works in 2D.
 * The [`GlobalGray`](@ref) algorithm is fast for an n-dimensional algorithm.
 * The [`FaceContinuous`](@ref) algorithm is slower and is included because it has a different shape and is historically important as the first non-recursive n-dimensional algorithm.

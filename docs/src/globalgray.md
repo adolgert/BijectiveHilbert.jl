@@ -1,5 +1,7 @@
 # Global Gray
 
+See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+
 This is a very concise algorithm for Hilbert curve generation. It works in `n`-dimensions. It requires little code. It comes from a little paper [^1] behind a paywall, sadly.
 
 Most algorithms for the Hilbert curve use Gray codes to generate the shape. He observed that, instead of using the space key algorithm, which dives to each level deeper and rotates the Gray code, the algorithm could use a global transformation of all values with a Gray code and then do a minor fix-up, afterwards, so untwist it. The resulting code is much simpler than earlier efforts.
