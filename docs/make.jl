@@ -1,10 +1,11 @@
 using BijectiveHilbert
 using Documenter
 
+
 makedocs(;
-    modules=[BijectiveHilbert],
+    # modules=[BijectiveHilbert],
     authors="Andrew Dolgert <adolgert@uw.edu>",
-    repo="https://github.com/adolgert/BijectiveHilbert.jl/blob/{commit}{path}#L{line}",
+    repo=Remotes.GitHub("adolgert", "BijectiveHilbert.jl"),
     sitename="BijectiveHilbert.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
