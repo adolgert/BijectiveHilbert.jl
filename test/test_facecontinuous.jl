@@ -52,6 +52,21 @@ decode_hilbert_zero!(fc, X3, h)
 end
 
 
+@testitem "FaceContinuous MArray" begin
+    using StaticArrays
+    bits = 4
+    dimensions = 3
+    gg = FaceContinuous(UInt32, bits, dimensions)
+    X = @MArray [2, 3, 7]
+    hilbert_idx = encode_hilbert(gg, X)
+    fill!(X, 0)
+    decode_hilbert!(gg, X, hilbert_idx)
+    @test X[1] == 2
+    @test X[2] == 3
+    @test X[3] == 7
+end
+
+
 @testitem "FaceContinuous is its own inverse" setup=[HilbertTestSuite] begin
 using BijectiveHilbert: FaceContinuous
 for n in [2, 3, 5]

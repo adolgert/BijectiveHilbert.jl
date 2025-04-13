@@ -22,6 +22,19 @@ using TestItemRunner
   end
 end
 
+@testitem "simple2d MArray" begin
+  using StaticArrays
+  bits = 4
+  dimensions = 3
+  gg = Simple2D(Int)
+  X = @MArray [2, 3]
+  hilbert_idx = encode_hilbert(gg, X)
+  fill!(X, 0)
+  decode_hilbert!(gg, X, hilbert_idx)
+  @test X[1] == 2
+  @test X[2] == 3
+end
+
 
 @testitem "simple2d rmin unchanged" begin
   using BijectiveHilbert
