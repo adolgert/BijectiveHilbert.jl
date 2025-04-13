@@ -403,7 +403,7 @@ axis_type(gg::SpaceGray) = large_enough_unsigned(gg.b)
 
 function SpaceGray(b, n)
     ttype = large_enough_unsigned(b * n)
-    SpaceGray{ttype,b}(b, n, zeros(MVector{b,T}))
+    SpaceGray{ttype,b}(b, n, zeros(MVector{b,ttype}))
 end
 
 
