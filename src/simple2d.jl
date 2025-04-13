@@ -12,6 +12,7 @@ Simple2D(::Type{T}) where {T} = Simple2D{T}()
 axis_type(::Simple2D{T}) where {T} = Int
 
 
+# The paper used the floor(log2()) code, so this replaces it.
 rmin_orig(x, y) = convert(Int, floor(log2(max(x, y))) + 1)
 rmin_replace(x, y) = log_base2(x | y) + one(Int)
 

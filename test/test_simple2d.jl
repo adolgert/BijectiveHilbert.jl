@@ -24,9 +24,14 @@ end
 
 
 @testitem "simple2d rmin unchanged" begin
+  using BijectiveHilbert
+
+  rmin_orig(x, y) = convert(Int, floor(log2(max(x, y))) + 1)
+  rmin_replace(x, y) = BijectiveHilbert.log_base2(x | y) + one(Int)
+
   for x::Int in 1:300
     for y::Int in 1:32
-      @test BijectiveHilbert.Bijective.rmin_orig(x, y) == BijectiveHilbert.Bijective.rmin_replace(x, y)
+      @test rmin_orig(x, y) == rmin_replace(x, y)
     end
   end
 end

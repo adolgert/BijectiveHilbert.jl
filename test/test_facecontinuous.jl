@@ -4,7 +4,7 @@ using TestItemRunner
 @testitem "FaceContinuous basic test" begin
 # Test using the vector form of the Hilbert index so that we don't
 # introduce another layer of error. When this works, delete it.
-using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!, msb
+using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!
 # Works for UInt32 or UInt16.
 A = UInt32
 H = UInt32
