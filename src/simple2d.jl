@@ -1,5 +1,5 @@
 module Bijective
-import ..BijectiveHilbert: encode_hilbert_zero, decode_hilbert_zero!, HilbertAlgorithm, axis_type
+import ..BijectiveHilbert: encode_hilbert_zero, decode_hilbert_zero!, HilbertAlgorithm, axis_type, log_base2
 
 
 struct Simple2D{T} <: HilbertAlgorithm{T}
@@ -12,14 +12,18 @@ Simple2D(::Type{T}) where {T} = Simple2D{T}()
 axis_type(::Simple2D{T}) where {T} = Int
 
 
-function encode_hilbert_zero(::Simple2D{T}, X::Vector{A})::T where {A, T}
+rmin_orig(x, y) = convert(Int, floor(log2(max(x, y))) + 1)
+rmin_replace(x, y) = log_base2(x | y) + one(Int)
+
+
+function encode_hilbert_zero(::Simple2D{T}, X::AbstractVector{A})::T where {A, T}
     x = X[1]
     y = X[2]
     z = zero(T)
     if x == zero(A) && y == zero(A)
         return z
     end
-    rmin = convert(Int, floor(log2(max(x, y))) + 1)
+    rmin = rmin_replace(x, y)
     w = one(A) << (rmin - 1)
     while rmin > 0
         z <<= 2
@@ -67,7 +71,7 @@ function encode_hilbert_zero(::Simple2D{T}, X::Vector{A})::T where {A, T}
 end
 
 
-function decode_hilbert_zero!(::Simple2D{T}, X::Vector{A}, z::T) where {A,T}
+function decode_hilbert_zero!(::Simple2D{T}, X::AbstractVector{A}, z::T) where {A,T}
     r = z & T(3)
     x, y = [(zero(A), zero(A)), (zero(A), one(A)), (one(A), one(A)), (one(A), zero(A))][r + 1]
     z >>= 2

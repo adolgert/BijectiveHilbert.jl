@@ -23,6 +23,15 @@ using TestItemRunner
 end
 
 
+@testitem "simple2d rmin unchanged" begin
+  for x::Int in 1:300
+    for y::Int in 1:32
+      @test BijectiveHilbert.Bijective.rmin_orig(x, y) == BijectiveHilbert.Bijective.rmin_replace(x, y)
+    end
+  end
+end
+
+
 @testitem "simple2d is its own inverse" setup=[HilbertTestSuite] begin
   using BijectiveHilbert: Simple2D
   gg = Simple2D(Int)
