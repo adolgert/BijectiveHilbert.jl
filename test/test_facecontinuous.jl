@@ -4,7 +4,7 @@ using TestItemRunner
 @testitem "FaceContinuous basic test" begin
 # Test using the vector form of the Hilbert index so that we don't
 # introduce another layer of error. When this works, delete it.
-using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!, msb
+using BijectiveHilbert: FaceContinuous, H_encode!, H_decode!
 # Works for UInt32 or UInt16.
 A = UInt32
 H = UInt32
@@ -49,6 +49,21 @@ h = encode_hilbert_zero(fc, X)
 X3 = zeros(A, 3)
 decode_hilbert_zero!(fc, X3, h)
 @test X == X3
+end
+
+
+@testitem "FaceContinuous MArray" begin
+    using StaticArrays
+    bits = 4
+    dimensions = 3
+    gg = FaceContinuous(UInt32, bits, dimensions)
+    X = @MArray [2, 3, 7]
+    hilbert_idx = encode_hilbert(gg, X)
+    fill!(X, 0)
+    decode_hilbert!(gg, X, hilbert_idx)
+    @test X[1] == 2
+    @test X[2] == 3
+    @test X[3] == 7
 end
 
 

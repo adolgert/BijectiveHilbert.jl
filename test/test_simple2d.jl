@@ -22,6 +22,50 @@ using TestItemRunner
   end
 end
 
+@testitem "simple2d MArray" begin
+  using StaticArrays
+  bits = 4
+  dimensions = 3
+  gg = Simple2D(Int)
+  X = @MArray [2, 3]
+  hilbert_idx = encode_hilbert(gg, X)
+  fill!(X, 0)
+  decode_hilbert!(gg, X, hilbert_idx)
+  @test X[1] == 2
+  @test X[2] == 3
+end
+
+
+@testitem "simple2d rmin unchanged" begin
+  using BijectiveHilbert
+
+  rmin_orig(x, y) = convert(Int, floor(log2(max(x, y))) + 1)
+  rmin_replace(x, y) = BijectiveHilbert.log_base2(x | y) + one(Int)
+
+  for x::Int in 1:300
+    for y::Int in 1:32
+      @test rmin_orig(x, y) == rmin_replace(x, y)
+    end
+  end
+end
+
+
+@testitem "simple2d weird if-then" begin
+  # The code in the original paper has some if-thens which I translated badly.
+  # This test shows how to un-uglify them.
+  # r  x  y  r1 r0
+  # 0  0  0   0  0
+  # 1  0  1   0  1
+  # 2  1  1   1  0
+  # 3  1  0   1  1
+  for r in 0:3
+    A = Int
+    x, y = [(zero(A), zero(A)), (zero(A), one(A)), (one(A), one(A)), (one(A), zero(A))][r + 1]
+    @test x == (r & 2) >> 1
+    @test y == ((r + 1) & 2) >> 1
+  end
+end
+
 
 @testitem "simple2d is its own inverse" setup=[HilbertTestSuite] begin
   using BijectiveHilbert: Simple2D

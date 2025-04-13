@@ -50,7 +50,7 @@ axis_type(gg::FaceContinuous) = large_enough_unsigned(gg.b)
 g_mask(::Type{A}, n, iz) where {A} = one(A) << (n - iz - 1)
 
 
-function H_encode!(gg::FaceContinuous{F}, pt::Vector{K}, h::Vector{K}) where {K,F}
+function H_encode!(gg::FaceContinuous{F}, pt::AbstractVector{K}, h::AbstractVector{K}) where {K,F}
     wordbits = 8 * sizeof(K)
     W = zero(K)
     P = zero(K)
@@ -206,7 +206,7 @@ function downlevel!(l::FCLevel)
 end
 
 
-function index_at_level(H::Vector{K}, l::FCLevel{K}) where {K}
+function index_at_level(H::AbstractVector{K}, l::FCLevel{K}) where {K}
     wordbits = 8 * sizeof(K)
     element = l.i ÷ wordbits
     P = H[element + 1]
@@ -227,7 +227,7 @@ function index_at_level(H::Vector{K}, l::FCLevel{K}) where {K}
 end
 
 
-function distribute_to_coords!(bits::K, axes::Vector{K}, l::FCLevel{K}) where K
+function distribute_to_coords!(bits::K, axes::AbstractVector{K}, l::FCLevel{K}) where K
     j = l.n - 1
     while bits > 0
         if bits & one(K) != 0
@@ -278,7 +278,7 @@ function fc_flip(P::K) where {K}
 end
 
 
-function H_decode!(gg::FaceContinuous{F}, H::Vector{K}, pt::Vector{K}) where {K,F}
+function H_decode!(gg::FaceContinuous{F}, H::AbstractVector{K}, pt::AbstractVector{K}) where {K,F}
     pt .= zero(K)
     l = FCLevel(gg, K)
     P = index_at_level(H, l)
@@ -314,7 +314,7 @@ function H_decode!(gg::FaceContinuous{F}, H::Vector{K}, pt::Vector{K}) where {K,
 end
 
 
-function encode_hilbert_zero(fc::FaceContinuous{T}, X::Vector{A})::T where {A,T}
+function encode_hilbert_zero(fc::FaceContinuous{T}, X::AbstractVector{A})::T where {A,T}
     hvec = zeros(A, fc.n)
     H_encode!(fc, X, hvec)
     # Encoding packs H into a vector of A, using all bits in the A type.
@@ -327,7 +327,7 @@ function encode_hilbert_zero(fc::FaceContinuous{T}, X::Vector{A})::T where {A,T}
 end
 
 
-function decode_hilbert_zero!(fc::FaceContinuous{T}, X::Vector{A}, h::T) where {A,T}
+function decode_hilbert_zero!(fc::FaceContinuous{T}, X::AbstractVector{A}, h::T) where {A,T}
     # H is in a larger type T but algorithm expects it packed into a vector of A.
     hvec = zeros(A, fc.n)
     for i in 1:fc.n

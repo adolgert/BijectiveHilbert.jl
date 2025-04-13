@@ -4,7 +4,7 @@
 Convert from Hilbert index to a coordinatefor `b` bits
 in `n` dimensions.
 """
-function transpose_to_axes!(X::Vector{T}, b, n) where {T <: Integer}
+function transpose_to_axes!(X::AbstractVector{T}, b, n) where {T <: Integer}
     N = T(2) << (b - 1)
     # Gray decode by H^(H/2)
     t = X[n] >> 1
@@ -30,7 +30,7 @@ function transpose_to_axes!(X::Vector{T}, b, n) where {T <: Integer}
 end
 
 
-function axes_to_transpose!(X::Vector{T}, b, n) where {T <: Integer}
+function axes_to_transpose!(X::AbstractVector{T}, b, n) where {T <: Integer}
     M = one(T) << (b - 1)
     # Inverse undo
     Q = M
@@ -68,7 +68,7 @@ end
 Takes a vector of length `n` and places the bits of all `n` integers
 into a single integer. The vector's 1st component is the most significant bit.
 """
-function interleave_transpose(::Type{T}, X::Vector, b, n) where {T}
+function interleave_transpose(::Type{T}, X::AbstractVector, b, n) where {T}
     h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
@@ -84,7 +84,7 @@ end
 Takes a single integer and places its values into components of a vector,
 bit-by-bit.
 """
-function outerleave_transpose!(X::Vector{T}, h, b, n) where {T <: Integer}
+function outerleave_transpose!(X::AbstractVector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
     for i in 0:(b-1)
         for d in 1:n
@@ -99,7 +99,7 @@ end
 Takes a vector of length `n` and places the bits of all `n` integers
 into a single integer. The vector's 1st component is the least significant bit.
 """
-function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
+function interleave_transpose_low(::Type{T}, X::AbstractVector{T}, b, n) where {T}
     h = zero(T)
     for i in 0:(b - 1)
         for d in 1:n
@@ -110,7 +110,7 @@ function interleave_transpose_low(::Type{T}, X::Vector{T}, b, n) where {T}
 end
 
 
-function outerleave_transpose_low!(X::Vector{T}, h, b, n) where {T <: Integer}
+function outerleave_transpose_low!(X::AbstractVector{T}, h, b, n) where {T <: Integer}
     X .= zero(T)
     for i in 0:(b-1)
         for d in 1:n
@@ -157,7 +157,7 @@ function GlobalGray(::Type{T}, b, n) where {T}
 end
 
 
-function encode_hilbert_zero!(g::GlobalGray{T}, X::Vector)::T where {T}
+function encode_hilbert_zero!(g::GlobalGray{T}, X::AbstractVector)::T where {T}
     axes_to_transpose!(X, g.b, g.n)
     interleave_transpose(T, X, g.b, g.n)
 end
@@ -171,8 +171,8 @@ Takes an n-dimensional vector `X` and returns a single integer of type
 axes and the output is called a Hilbert index. This version is zero-based,
 so each axis counts from 0, and the smallest Hilbert index is 0.
 """
-function encode_hilbert_zero(g::GlobalGray{T}, X::Vector)::T where {T}
-    Y = copy(X)
+function encode_hilbert_zero(g::GlobalGray{T}, X::AbstractVector{XT})::T where {T, XT}
+    Y = copy(X)  # Because Y is mutated during the calculation.
     encode_hilbert_zero!(g, Y)
 end
 
@@ -184,7 +184,7 @@ Given a Hilbert index, `h`, computes an n-dimensional coordinate `X`. The type o
 the Hilbert index is large enought to contain the bits of all dimensions of the
 axis vector, `X`.
 """
-function decode_hilbert_zero!(g::GlobalGray{T}, X::Vector, h::T) where {T}
+function decode_hilbert_zero!(g::GlobalGray{T}, X::AbstractVector, h::T) where {T}
     outerleave_transpose!(X, h, g.b, g.n)
     transpose_to_axes!(X, g.b, g.n)
 end

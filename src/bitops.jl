@@ -10,7 +10,7 @@ function large_enough_unsigned(bit_cnt)
             break
         end
     end
-    atype
+    return atype
 end
 
 
@@ -19,8 +19,8 @@ end
 
 This integer is a power of two.
 """
-function is_power_of_two(v::Base.BitInteger)
-    v != 0 && ((v & (v - 1)) == 0)
+function is_power_of_two(v::Base.BitInteger)::Bool
+    return v != 0 && ((v & (v - 1)) == 0)
 end
 
 
@@ -30,12 +30,12 @@ end
 
 Count the number of bits in an integer, rounding down.
 """
-function log_base2(v::Integer)::Integer
-    r = zero(v)
+function log_base2(v::Integer)::Int
+    r = zero(Int)
     while (v = v >> one(v)) > 0
-      r += one(v)
+      r += one(Int)
     end
-    r
+    return r
 end
 
 
@@ -45,13 +45,13 @@ end
 A naive algorithm to count bits that are set.
 Look here to improve: https://graphics.stanford.edu/~seander/bithacks.html.
 """
-function count_set_bits(v::Integer)
-    c = zero(v)
+function count_set_bits(v::Integer)::Int
+    c = zero(Int)
     while v != zero(v)
         c += v & one(v)
-        v = v>>one(v)
+        v = v>>one(Int)
     end
-    c
+    return c
 end
 
 
@@ -61,12 +61,12 @@ end
 Most-significant bit, zero-based count. So `0b1` is 0,
 `0b1010` is 3.
 """
-function msb(v::Integer)
-    r = 0
+function msb(v::Integer)::Int
+    r = zero(Int)
     while (v >>= 1) != 0
-        r += 1
+        r += one(Int)
     end
-    r
+    return r
 end
 
 
@@ -75,14 +75,14 @@ end
 
 The number of zero bits after the last one-bit.
 """
-function trailing_zero_bits(v::Integer)
-    c = zero(v)
+function trailing_zero_bits(v::Integer)::Int
+    c = zero(Int)
     if v != zero(v)
         # Set v's trailing 0s to 1s and zero rest
         v = (v ⊻ (v - one(v))) >> one(v)
         while v != zero(v)
             v = v >> 1
-            c += one(v)
+            c += one(Int)
         end
     else
         c = 8 * sizeof(v)

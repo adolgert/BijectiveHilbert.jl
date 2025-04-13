@@ -1,3 +1,5 @@
+using StaticArrays: MVector
+
 # Compact Hilbert Indices by Chris Hamilton. Technical Report CS-2006-07.
 # 6059 University Ave., Halifax, Nova Scotia, B3H 1W5, Canada.
 #
@@ -98,7 +100,7 @@ end
 
 
 # hamilton version of getting the ith bit, zero-indexed i.
-function get_location(p::Vector{T}, i) where {T}
+function get_location(p::AbstractVector{T}, i) where {T}
     l = zero(T)
     for j = eachindex(p)
         if (p[j] & (one(T) << i)) != 0
@@ -165,7 +167,11 @@ end
 
 
 """
-Algorithm.hpp: _coordsToIndex
+    hilbert_index(n, m, p)
+
+Hilbert index for an `n`-dimensional vector `p`, with each
+component of extent less than 2^m. Algorithm 1 of Hamilton and
+Rau-Chaplin. Algorithm.hpp: _coordsToIndex
 """
 function hilbert_index_paper!(::Type{T}, n, m, p, ds) where {T <: Integer}
     h = zero(T)  # hilbert index
@@ -185,19 +191,6 @@ function hilbert_index_paper!(::Type{T}, n, m, p, ds) where {T <: Integer}
         e, d = update2(l, t, w, n, e, d)
     end
     brgc_inv(h)
-end
-
-
-"""
-    hilbert_index(n, m, p)
-
-Hilbert index for an `n`-dimensional vector `p`, with each
-component of extent less than 2^m. Algorithm 1 of Hamilton and
-Rau-Chaplin.
-"""
-function hilbert_index_paper(::Type{T}, n, m, p) where {T <: Integer}
-    ds = zeros(Int, m)
-    hilbert_index_paper!(T, n, m, p, ds)
 end
 
 
@@ -261,7 +254,7 @@ in the Hilbert curve. `d` is the direction, called `hi_d` above.
 
 Returns both the mask and the number of bits set in the mask.
 """
-function extract_mask(m::Vector, n, d, i)
+function extract_mask(m::AbstractVector, n, d, i)
     T = UInt64
     mask = zero(T)
     b = 0
@@ -288,7 +281,7 @@ function extract_mask(m::Vector, n, d, i)
 end
 
 
-function extract_mask_paper(m::Vector, n, d, i)
+function extract_mask_paper(m::AbstractVector, n, d, i)
     T = UInt64
     mask = zero(T)
     b = 0
@@ -307,7 +300,7 @@ end
 """
 From GrayCodeRank.hpp: compactIndex.
 """
-function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
+function compact_index(ms::AbstractVector, ds::AbstractVector, n, m, h::T) where {T}
     hc = zero(T)
     hr = 0
     hcr = 0
@@ -351,7 +344,7 @@ function compact_index(ms::Vector, ds::Vector, n, m, h::T) where {T}
 end
 
 
-function coords_to_compact_index(::Type{T}, p::Vector{A}, ms::Vector, n) where {A,T}
+function coords_to_compact_index(::Type{T}, p::AbstractVector{A}, ms::AbstractVector, n) where {A,T}
     m = maximum(ms)
     M = sum(ms)
     mn = m * n
@@ -361,7 +354,7 @@ function coords_to_compact_index(::Type{T}, p::Vector{A}, ms::Vector, n) where {
 end
 
 
-function compact_index_to_coords!(p::Vector{A}, ms, n, hc::T) where {A, T}
+function compact_index_to_coords!(p::AbstractVector{A}, ms, n, hc::T) where {A, T}
     m = maximum(ms)
     M = sum(ms)
     bit_cnt = 8 * sizeof(T)
@@ -398,9 +391,10 @@ This is an n-dimensional Hilbert curve where all `n` dimensions
 must have `b` bits in size. It was described in the same paper
 and examples as the `Compact` algorithm.
 """
-struct SpaceGray{T} <: HilbertAlgorithm{T}
+struct SpaceGray{T,B} <: HilbertAlgorithm{T}
     b::Int
     n::Int
+    ds::MVector{B,T}
 end
 
 
@@ -409,28 +403,29 @@ axis_type(gg::SpaceGray) = large_enough_unsigned(gg.b)
 
 function SpaceGray(b, n)
     ttype = large_enough_unsigned(b * n)
-    SpaceGray{ttype}(b, n)
+    SpaceGray{ttype,b}(b, n, zeros(MVector{b,ttype}))
 end
 
 
 function SpaceGray(::Type{T}, b, n) where {T}
-    SpaceGray{T}(b, n)
+    SpaceGray{T,b}(b, n, zeros(MVector{b,T}))
 end
 
 
-function encode_hilbert_zero(g::SpaceGray{T}, X::Vector)::T where {T}
-    hilbert_index_paper(T, g.n, g.b, X)
+function encode_hilbert_zero(g::SpaceGray{T}, X::AbstractVector)::T where {T}
+    fill!(g.ds, zero(T))
+    hilbert_index_paper!(T, g.n, g.b, X, g.ds)
 end
 
 
-function decode_hilbert_zero!(g::SpaceGray{T}, X::Vector, h::T) where {T}
+function decode_hilbert_zero!(g::SpaceGray{T}, X::AbstractVector, h::T) where {T}
     hilbert_index_inv_paper!(T, g.n, g.b, h, X)
 end
 
 
 """
-    Compact(ms::Vector{Int})
-    Compact(::Type{T}, ms::Vector{Int})
+    Compact(ms::AbstractVector{Int})
+    Compact(::Type{T}, ms::AbstractVector{Int})
 
 This algorithm is n-dimensional and permits dimensions to use different
 numbers of bits, specified in the `ms` vector. The type `T` is an
@@ -449,10 +444,10 @@ This algorithm comes from three sources:
 
 * The [libhilbert source code](https://github.com/pdebuyl/libhilbert)
   is a copy of Hamilton's work and has many corrections. This, ultimately,
-  lead to the working code.
+  lead to the current code.
 """
 struct Compact{T} <: HilbertAlgorithm{T}
-    ms::Vector{Int}
+    ms::AbstractVector{Int}
     n::Int
 end
 
@@ -460,7 +455,7 @@ end
 axis_type(gg::Compact) = large_enough_unsigned(maximum(gg.ms))
 
 
-function Compact(ms::Vector{Int})
+function Compact(ms::AbstractVector{Int})
     n = length(ms)
     b = maximum(ms)
     ttype = large_enough_unsigned(b * n)
@@ -468,16 +463,16 @@ function Compact(ms::Vector{Int})
 end
 
 
-function Compact(::Type{T}, ms::Vector{Int}) where {T}
+function Compact(::Type{T}, ms::AbstractVector{Int}) where {T}
     Compact{T}(ms, length(ms))
 end
 
 
-function encode_hilbert_zero(g::Compact{T}, X::Vector)::T where {T}
+function encode_hilbert_zero(g::Compact{T}, X::AbstractVector)::T where {T}
     coords_to_compact_index(index_type(g), X, g.ms, g.n)
 end
 
 
-function decode_hilbert_zero!(g::Compact{T}, X::Vector, h::T) where {T}
+function decode_hilbert_zero!(g::Compact{T}, X::AbstractVector, h::T) where {T}
     compact_index_to_coords!(X, g.ms, g.n, h)
 end
