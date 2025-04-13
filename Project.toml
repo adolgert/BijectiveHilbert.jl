@@ -4,6 +4,7 @@ authors = ["Andrew Dolgert <adolgert@uw.edu>"]
 version = "0.4.0"
 
 [deps]
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 
 [compat]
@@ -11,9 +12,10 @@ Aqua = "^0.8"
 CSV = "^0.10"
 Random = "^1"
 Revise = "^3"
+StaticArrays = "1.9.13"
 Test = "^1"
-TestItems = "^1.0"
 TestItemRunner = "^1.1"
+TestItems = "^1.0"
 UnitTestDesign = "0.4"
 julia = "^1.2"
 
