@@ -74,7 +74,8 @@ end
 
 function decode_hilbert_zero!(::Simple2D{T}, X::AbstractVector{A}, z::T) where {A,T}
     r = z & T(3)
-    x, y = [(zero(A), zero(A)), (zero(A), one(A)), (one(A), one(A)), (one(A), zero(A))][r + 1]
+    x = (r & 2) >> 1
+    y = ((r + 1) & 2) >> 1
     z >>= 2
     rmin = 2
     w = one(A) << 1

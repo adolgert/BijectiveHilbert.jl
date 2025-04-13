@@ -37,6 +37,23 @@ end
 end
 
 
+@testitem "simple2d weird if-then" begin
+  # The code in the original paper has some if-thens which I translated badly.
+  # This test shows how to un-uglify them.
+  # r  x  y  r1 r0
+  # 0  0  0   0  0
+  # 1  0  1   0  1
+  # 2  1  1   1  0
+  # 3  1  0   1  1
+  for r in 0:3
+    A = Int
+    x, y = [(zero(A), zero(A)), (zero(A), one(A)), (one(A), one(A)), (one(A), zero(A))][r + 1]
+    @test x == (r & 2) >> 1
+    @test y == ((r + 1) & 2) >> 1
+  end
+end
+
+
 @testitem "simple2d is its own inverse" setup=[HilbertTestSuite] begin
   using BijectiveHilbert: Simple2D
   gg = Simple2D(Int)
