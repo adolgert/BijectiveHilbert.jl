@@ -11,6 +11,20 @@ end
 end
 
 
+@testitem "trailing set bits" begin
+    using Random
+    rng = Xoshiro(9823749237)
+
+    for T in [UInt8, UInt16, UInt32, UInt64, UInt128]
+        for i in 1:100
+            v = rand(rng, T)
+            known = BijectiveHilbert.trailing_zero_bits(~v)
+            @test BijectiveHilbert.trailing_set_bits(v) == known
+        end
+    end
+end
+
+
 @testitem "rotateleft cases" begin
 using BijectiveHilbert    
 tries = [
