@@ -127,18 +127,6 @@ function fbvn1s(T::DataType, n)
 end
 
 
-# """
-# 2^n - 1, computed for an unsigned integer.
-# """
-# function fbvn1s(_::T, n) where {T}
-#     if n == T(sizeof(T) * 8)
-#         ~zero(T)
-#     else
-#         (one(T) << n) - one(T)
-#     end
-# end
-
-
 function fbvmod(i, m)
     if i >= m
         i -= m * i / m
