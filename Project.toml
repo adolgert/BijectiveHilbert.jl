@@ -1,7 +1,7 @@
 name = "BijectiveHilbert"
 uuid = "91e7fc40-53cd-4118-bd19-d7fcd1de2a54"
 authors = ["Andrew Dolgert <adolgert@andrew.cmu.edu>"]
-version = "0.4.0"
+version = "0.5.0"
 
 [deps]
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
