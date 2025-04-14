@@ -27,22 +27,11 @@ end
 
 
 @testitem "hi_g symmetry invariant" begin
-using BijectiveHilbert: brgc, hi_g, bshow
-# n = 3
-# for i in 0:(1<<n)
-#     println(
-#         bshow(brgc(i)), " ",
-#         bshow(brgc(i + 1)), " ",
-#         bshow(brgc(i) ⊻ brgc(i + 1)), " ",
-#         bshow(1<<hi_g(i)), " ",
-#         bshow(i)
-#     )
-# end
+using BijectiveHilbert: brgc, hi_g
 
 # Test for the hi_g function.
 n = 5
 for i in 0:(1<<n - 2)
-    # println(hi_g(i), " ", hi_g(1<<n - 2 - i))
     @test(hi_g(i) == hi_g(1<<n - 2 - i))
 end
 end
@@ -140,11 +129,7 @@ end
 
 
 @testitem "hi_d symmetry invariant works corollary 2.7" begin
-using BijectiveHilbert: hi_d, bshow
-# n = 3
-# for i = 0:(1<<n)
-#     println(i, " ", bshow(hi_d(i, n)))
-# end
+using BijectiveHilbert: hi_d
 
 # invariant for d on page 12. Corollary 2.7.
 # Does not hold true for i=0 and i=1<<n - 1.

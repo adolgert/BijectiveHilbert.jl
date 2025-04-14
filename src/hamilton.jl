@@ -125,19 +125,6 @@ function set_indices_bits!(p, l, m, i)
 end
 
 
-"""
-Return `m` bits from the `i`-th set of `m` bits
-in the integer `h`. `i` is zero-based.
-"""
-function bitrange(h, n, i)
-    v = zero(h)
-    for j in 0:(n - 1)
-        v = v | (h & (1<<(i*n + j)))
-    end
-    v
-end
-
-
 function update1(l, t, w, n, e, d)
     e = l ⊻ (one(l) << d)
     d += one(d) + first_set_bit(t)
@@ -225,22 +212,6 @@ function hilbert_index(n, m, p, d = zero(eltype(p)))
         d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
     end
     h
-end
-
-
-function hilbert_index_inv(n, m, h)
-    e = zero(h)  # entry point
-    d = zero(h)  # direction
-    p = zeros(typeof(h), m)
-    for i = (m - 1):-1:0  # i is an index. Can be any type.
-        w = bitrange(h, n, i)
-        l = brgc(w)
-        l = hi_T_inv(l, d, e, n)
-        set_indices_bits!(p, l, m, i)
-        e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
-        d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
-    end
-    p
 end
 
 
@@ -344,45 +315,6 @@ function compact_index(ms::AbstractVector, ds::AbstractVector, n, m, h::T) where
 end
 
 
-function coords_to_compact_index(::Type{T}, p::AbstractVector{A}, ms::AbstractVector, n) where {A,T}
-    m = maximum(ms)
-    M = sum(ms)
-    mn = m * n
-    ds = zeros(Int, m)
-    h = hilbert_index_paper!(T, n, m, p, ds)
-    compact_index(ms, ds, n, m, h)
-end
-
-
-function compact_index_to_coords!(p::AbstractVector{A}, ms, n, hc::T) where {A, T}
-    m = maximum(ms)
-    M = sum(ms)
-    bit_cnt = 8 * sizeof(T)
-
-    e = zero(T)
-    d = one(T)
-    l = zero(T)
-    p .= zero(A)
-    # work from most significant bit to least significant bit
-    for i = (m - 1):-1:0
-        mask, b = extract_mask(ms, n, d, i)
-        # rotateright(val, shift_cnt, total_bits)
-        ptrn = rotateright(e, d, n)
-
-        # Get the Hilbert index bits.
-        M -= b
-        # b bits from hc at index M, into r
-        r = get_bits(hc, b, M)
-        
-        t, w = brgc_rank_inv(mask, ptrn, r, n, b)
-
-        l = hi_T_inv(t, d, e, n)
-        set_indices_bits!(p, l, n, i)
-        e, d = update1(l, t, w, n, e, d)
-    end
-end
-
-
 """
     SpaceGray(b, n)
     SpaceGray(::Type{T}, b, n)
@@ -420,59 +352,4 @@ end
 
 function decode_hilbert_zero!(g::SpaceGray{T}, X::AbstractVector, h::T) where {T}
     hilbert_index_inv_paper!(T, g.n, g.b, h, X)
-end
-
-
-"""
-    Compact(ms::AbstractVector{Int})
-    Compact(::Type{T}, ms::AbstractVector{Int})
-
-This algorithm is n-dimensional and permits dimensions to use different
-numbers of bits, specified in the `ms` vector. The type `T` is an
-optional data type for the Hilbert index. It should be greater than or
-equal to the sum of the bits.
-
-This algorithm comes from three sources:
-
-* A technical report, "Compact Hilbert Indices" by Chris Hamilton.
-  Technical Report CS-2006-07. 6059 University Ave., Halifax, Nova
-  Scotia, B3H 1W5, Canada. This report is informative but has many
-  errors.
-
-* A paper by Hamilton and Rau-Chaplin, "Compact Hilbert Indices for
-  Multi-Dimensional Data," 2007. Nice paper. Also wrong.
-
-* The [libhilbert source code](https://github.com/pdebuyl/libhilbert)
-  is a copy of Hamilton's work and has many corrections. This, ultimately,
-  lead to the current code.
-"""
-struct Compact{T} <: HilbertAlgorithm{T}
-    ms::AbstractVector{Int}
-    n::Int
-end
-
-
-axis_type(gg::Compact) = large_enough_unsigned(maximum(gg.ms))
-
-
-function Compact(ms::AbstractVector{Int})
-    n = length(ms)
-    b = maximum(ms)
-    ttype = large_enough_unsigned(b * n)
-    Compact{ttype}(ms, n)
-end
-
-
-function Compact(::Type{T}, ms::AbstractVector{Int}) where {T}
-    Compact{T}(ms, length(ms))
-end
-
-
-function encode_hilbert_zero(g::Compact{T}, X::AbstractVector)::T where {T}
-    coords_to_compact_index(index_type(g), X, g.ms, g.n)
-end
-
-
-function decode_hilbert_zero!(g::Compact{T}, X::AbstractVector, h::T) where {T}
-    compact_index_to_coords!(X, g.ms, g.n, h)
 end

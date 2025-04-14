@@ -1,6 +1,3 @@
-bshow(i) = bitstring(i)[end-7:end]
-
-
 function large_enough_unsigned(bit_cnt)
     unsigned_types = [UInt8, UInt16, UInt32, UInt64, UInt128]
     atype = nothing
@@ -39,36 +36,6 @@ function log_base2(v::Integer)::Int
 end
 
 
-"""
-    count_set_bits(v::Integer)
-
-A naive algorithm to count bits that are set.
-Look here to improve: https://graphics.stanford.edu/~seander/bithacks.html.
-"""
-function count_set_bits(v::Integer)::Int
-    c = zero(Int)
-    while v != zero(v)
-        c += v & one(v)
-        v = v>>one(Int)
-    end
-    return c
-end
-
-
-"""
-    msb(v::Integer)
-
-Most-significant bit, zero-based count. So `0b1` is 0,
-`0b1010` is 3.
-"""
-function msb(v::Integer)::Int
-    r = zero(Int)
-    while (v >>= 1) != 0
-        r += one(Int)
-    end
-    return r
-end
-
 
 """
     trailing_zero_bits(v::Integer)
@@ -96,7 +63,7 @@ end
 
 The number of one-bits after the last zero-bit.
 """
-trailing_set_bits(v) = trailing_zero_bits(~v)
+trailing_set_bits(v::Integer) = trailing_zero_bits(~v)
 
 
 """
@@ -160,16 +127,16 @@ function fbvn1s(T::DataType, n)
 end
 
 
-"""
-2^n - 1, computed for an unsigned integer.
-"""
-function fbvn1s(_::T, n) where {T}
-    if n == T(sizeof(T) * 8)
-        ~zero(T)
-    else
-        (one(T) << n) - one(T)
-    end
-end
+# """
+# 2^n - 1, computed for an unsigned integer.
+# """
+# function fbvn1s(_::T, n) where {T}
+#     if n == T(sizeof(T) * 8)
+#         ~zero(T)
+#     else
+#         (one(T) << n) - one(T)
+#     end
+# end
 
 
 function fbvmod(i, m)
@@ -214,7 +181,7 @@ function get_bits(v::T, b, i) where {T}
 end
 
 
-function trailing_set_bits_hamilton(i::UInt64)
+function trailing_set_bits(i::UInt64)
     T = UInt64
     c = zero(Int)
     if i == ~zero(T)
@@ -248,7 +215,7 @@ function trailing_set_bits_hamilton(i::UInt64)
 end
 
 
-function trailing_set_bits_hamilton(i::UInt32)
+function trailing_set_bits(i::UInt32)
     T = UInt32
     c = zero(Int)
     if i == ~zero(T)
@@ -278,7 +245,7 @@ function trailing_set_bits_hamilton(i::UInt32)
 end
 
 
-function trailing_set_bits_hamilton(i::UInt16)
+function trailing_set_bits(i::UInt16)
     T = UInt16
     c = zero(Int)
     if i == ~zero(T)
@@ -304,7 +271,7 @@ function trailing_set_bits_hamilton(i::UInt16)
 end
 
 
-function trailing_set_bits_hamilton(i::UInt8)
+function trailing_set_bits(i::UInt8)
     T = UInt8
     c = zero(Int)
     if i == ~zero(T)
