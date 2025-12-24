@@ -27,13 +27,7 @@ end
 
 Count the number of bits in an integer, rounding down.
 """
-function log_base2(v::Integer)::Int
-    r = zero(Int)
-    while (v = v >> one(v)) > 0
-      r += one(Int)
-    end
-    return r
-end
+log_base2(v::Integer)::Int = 8 * sizeof(v) - leading_zeros(v) - 1
 
 
 
@@ -42,20 +36,7 @@ end
 
 The number of zero bits after the last one-bit.
 """
-function trailing_zero_bits(v::Integer)::Int
-    c = zero(Int)
-    if v != zero(v)
-        # Set v's trailing 0s to 1s and zero rest
-        v = (v ⊻ (v - one(v))) >> one(v)
-        while v != zero(v)
-            v = v >> 1
-            c += one(Int)
-        end
-    else
-        c = 8 * sizeof(v)
-    end
-    c
-end
+trailing_zero_bits(v::Integer)::Int = trailing_zeros(v)
 
 
 """
@@ -63,7 +44,7 @@ end
 
 The number of one-bits after the last zero-bit.
 """
-trailing_set_bits(v::Integer) = trailing_zero_bits(~v)
+trailing_set_bits(v::Integer)::Int = trailing_ones(v)
 
 
 """
@@ -169,276 +150,9 @@ function get_bits(v::T, b, i) where {T}
 end
 
 
-function trailing_set_bits(i::UInt64)
-    T = UInt64
-    c = zero(Int)
-    if i == ~zero(T)
-        return T(8) * sizeof(T)
-    end
-    if (i & fbvn1s(T, 32)) == fbvn1s(T, 32)
-        i >>= T(32)
-        c ⊻= T(32)
-    end
-    if (i & fbvn1s(T, 16)) == fbvn1s(T, 16)
-        i >>= T(16)
-        c ⊻= T(16)
-    end
-    if (i & fbvn1s(T, 8)) == fbvn1s(T, 8)
-        i >>= T(8)
-        c ⊻= T(8)
-    end
-    if (i & fbvn1s(T, 4)) == fbvn1s(T, 4)
-        i >>= T(4)
-        c ⊻= T(4)
-    end
-    if (i & fbvn1s(T, 2)) == fbvn1s(T, 2)
-        i >>= T(2)
-        c ⊻= T(2)
-    end
-    if (i & fbvn1s(T, 1)) == fbvn1s(T, 1)
-        i >>= T(1)
-        c ⊻= T(1)
-    end
-    c
-end
+"""
+    first_set_bit(i::Integer)
 
-
-function trailing_set_bits(i::UInt32)
-    T = UInt32
-    c = zero(Int)
-    if i == ~zero(T)
-        return T(8) * sizeof(T)
-    end
-    if (i & fbvn1s(T, 16)) == fbvn1s(T, 16)
-        i >>= T(16)
-        c ⊻= T(16)
-    end
-    if (i & fbvn1s(T, 8)) == fbvn1s(T, 8)
-        i >>= T(8)
-        c ⊻= T(8)
-    end
-    if (i & fbvn1s(T, 4)) == fbvn1s(T, 4)
-        i >>= T(4)
-        c ⊻= T(4)
-    end
-    if (i & fbvn1s(T, 2)) == fbvn1s(T, 2)
-        i >>= T(2)
-        c ⊻= T(2)
-    end
-    if (i & fbvn1s(T, 1)) == fbvn1s(T, 1)
-        i >>= T(1)
-        c ⊻= T(1)
-    end
-    c
-end
-
-
-function trailing_set_bits(i::UInt16)
-    T = UInt16
-    c = zero(Int)
-    if i == ~zero(T)
-        return T(8) * sizeof(T)
-    end
-    if (i & fbvn1s(T, 8)) == fbvn1s(T, 8)
-        i >>= T(8)
-        c ⊻= T(8)
-    end
-    if (i & fbvn1s(T, 4)) == fbvn1s(T, 4)
-        i >>= T(4)
-        c ⊻= T(4)
-    end
-    if (i & fbvn1s(T, 2)) == fbvn1s(T, 2)
-        i >>= T(2)
-        c ⊻= T(2)
-    end
-    if (i & fbvn1s(T, 1)) == fbvn1s(T, 1)
-        i >>= T(1)
-        c ⊻= T(1)
-    end
-    c
-end
-
-
-function trailing_set_bits(i::UInt8)
-    T = UInt8
-    c = zero(Int)
-    if i == ~zero(T)
-        return T(8) * sizeof(T)
-    end
-    if (i & fbvn1s(T, 4)) == fbvn1s(T, 4)
-        i >>= T(4)
-        c ⊻= T(4)
-    end
-    if (i & fbvn1s(T, 2)) == fbvn1s(T, 2)
-        i >>= T(2)
-        c ⊻= T(2)
-    end
-    if (i & fbvn1s(T, 1)) == fbvn1s(T, 1)
-        i >>= T(1)
-        c ⊻= T(1)
-    end
-    c
-end
-
-
-function first_set_bit(i::T)::Int where {T <: Integer}
-    if i == 0
-        return 0
-    end
-    for j = 0:(8 * sizeof(T)  - 1)
-        if (i & (T(1) << j)) != 0
-            return j + 1
-        end
-    end
-    return 0 # for obvious type stability
-end
-
-
-function first_set_bit(i::UInt128)::Int
-    T = UInt128
-    c = zero(Int)
-    if i == zero(T)
-        return c
-    end
-    if (i & fbvn1s(T, 64)) == zero(T)
-        i >>= T(64)
-        c ⊻= 64
-    end
-    if (i & fbvn1s(T, 32)) == zero(T)
-        i >>= T(32)
-        c ⊻= 32
-    end
-    if (i & fbvn1s(T, 16)) == zero(T)
-        i >>= T(16)
-        c ⊻= 16
-    end
-    if (i & fbvn1s(T, 8)) == zero(T)
-        i >>= T(8)
-        c ⊻= 8
-    end
-    if (i & fbvn1s(T, 4)) == zero(T)
-        i >>= T(4)
-        c ⊻= 4
-    end
-    if (i & fbvn1s(T, 2)) == zero(T)
-        i >>= T(2)
-        c ⊻= 2
-    end
-    if (i & fbvn1s(T, 1)) == zero(T)
-        i >>= T(1)
-        c ⊻= 1
-    end
-    c + one(Int)
-end
-
-
-function first_set_bit(i::UInt64)::Int
-    T = UInt64
-    c = zero(Int)
-    if i == zero(T)
-        return c
-    end
-    if (i & fbvn1s(T, 32)) == zero(T)
-        i >>= T(32)
-        c ⊻= 32
-    end
-    if (i & fbvn1s(T, 16)) == zero(T)
-        i >>= T(16)
-        c ⊻= 16
-    end
-    if (i & fbvn1s(T, 8)) == zero(T)
-        i >>= T(8)
-        c ⊻= 8
-    end
-    if (i & fbvn1s(T, 4)) == zero(T)
-        i >>= T(4)
-        c ⊻= 4
-    end
-    if (i & fbvn1s(T, 2)) == zero(T)
-        i >>= T(2)
-        c ⊻= 2
-    end
-    if (i & fbvn1s(T, 1)) == zero(T)
-        i >>= T(1)
-        c ⊻= 1
-    end
-    c + one(Int)
-end
-
-
-function first_set_bit(i::UInt32)::Int
-    T = UInt32
-    c = zero(Int)
-    if i == zero(T)
-        return c
-    end
-    if (i & fbvn1s(T, 16)) == zero(T)
-        i >>= T(16)
-        c ⊻= 16
-    end
-    if (i & fbvn1s(T, 8)) == zero(T)
-        i >>= T(8)
-        c ⊻= 8
-    end
-    if (i & fbvn1s(T, 4)) == zero(T)
-        i >>= T(4)
-        c ⊻= 4
-    end
-    if (i & fbvn1s(T, 2)) == zero(T)
-        i >>= T(2)
-        c ⊻= 2
-    end
-    if (i & fbvn1s(T, 1)) == zero(T)
-        i >>= T(1)
-        c ⊻= 1
-    end
-    c + one(Int)
-end
-
-
-function first_set_bit(i::UInt16)::Int
-    T = UInt16
-    c = zero(Int)
-    if i == zero(T)
-        return c
-    end
-    if (i & fbvn1s(T, 8)) == zero(T)
-        i >>= T(8)
-        c ⊻= 8
-    end
-    if (i & fbvn1s(T, 4)) == zero(T)
-        i >>= T(4)
-        c ⊻= 4
-    end
-    if (i & fbvn1s(T, 2)) == zero(T)
-        i >>= T(2)
-        c ⊻= 2
-    end
-    if (i & fbvn1s(T, 1)) == zero(T)
-        i >>= T(1)
-        c ⊻= 1
-    end
-    c + one(Int)
-end
-
-
-function first_set_bit(i::UInt8)::Int
-    T = UInt8
-    c = zero(Int)
-    if i == zero(T)
-        return c
-    end
-    if (i & fbvn1s(T, 4)) == zero(T)
-        i >>= T(4)
-        c ⊻= 4
-    end
-    if (i & fbvn1s(T, 2)) == zero(T)
-        i >>= T(2)
-        c ⊻= 2
-    end
-    if (i & fbvn1s(T, 1)) == zero(T)
-        i >>= T(1)
-        c ⊻= 1
-    end
-    c + one(Int)
-end
+Returns the 1-indexed position of the least significant set bit, or 0 if i == 0.
+"""
+first_set_bit(i::Integer)::Int = i == 0 ? 0 : trailing_zeros(i) + 1
