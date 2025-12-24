@@ -39,25 +39,24 @@ end
 
 
 """
-    check_own_inverse(algorithm, extents::Vector{Int}, dimensions)
+    check_own_inverse(algorithm, ms::Vector{Int})
 
 Assert that encoding and decoding are inverses of each other.
-Here, the extents of the domain are passed in explicitly.
-Dimensions are the number of dimensions for the curve.
+Here, `ms` contains the number of bits per axis (not extents).
 This shows that encode(decode(z)) == z for every value of the Hilbert coordinate
 and that the decoded value is within the given dimensions.
 """
-function check_own_inverse(gg::HilbertAlgorithm, ms::Vector{Int}, n)
-    success = true
+function check_own_inverse(gg::HilbertAlgorithm, ms::Vector{Int})
+    n = length(ms)
     A = axis_type(gg)
     p = zeros(A, n)
     H = index_type(gg)
-    total = prod(ms)
-    for i in 0:(1<<total - 1)
+    total_bits = sum(ms)
+    for _ in 0:(1<<total_bits - 1)
         h = encode_hilbert_zero(gg, p)
         for idx in 1:n
-            if p[idx] < 0 || p[idx] >= ms[idx]
-                println("for dimensions $(ms) value is $(p)")
+            if p[idx] < 0 || p[idx] >= one(A)<<ms[idx]
+                println("for bits $(ms) value is $(p)")
                 return false
             end
         end
@@ -74,9 +73,8 @@ function check_own_inverse(gg::HilbertAlgorithm, ms::Vector{Int}, n)
                 break
             end
         end
-        @assert p != q
     end
-    success
+    true
 end
 
 

@@ -48,6 +48,8 @@ export Simple2D
 include("facecontinuous.jl")
 export FaceContinuous
 
+include("compact.jl")
+export Compact
 
 include("suite.jl")
 
