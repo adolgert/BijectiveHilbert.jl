@@ -32,22 +32,6 @@ log_base2(v::Integer)::Int = 8 * sizeof(v) - leading_zeros(v) - 1
 
 
 """
-    trailing_zero_bits(v::Integer)
-
-The number of zero bits after the last one-bit.
-"""
-trailing_zero_bits(v::Integer)::Int = trailing_zeros(v)
-
-
-"""
-    trailing_set_bits(v::Integer)
-
-The number of one-bits after the last zero-bit.
-"""
-trailing_set_bits(v::Integer)::Int = trailing_ones(v)
-
-
-"""
 Treat `x` as an `n`-bit unsigned integer. Rotate the bits
 `k` places to the left, wrapping them around the right side.
 """
