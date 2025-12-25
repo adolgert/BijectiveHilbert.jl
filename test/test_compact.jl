@@ -242,3 +242,60 @@ end
     decode_hilbert_zero!(c2, Y2, h2)
     @test X2 == Y2
 end
+
+
+@testitem "Compact encode/decode with mismatched coordinate types" begin
+    using BijectiveHilbert: Compact, encode_hilbert_zero, decode_hilbert_zero!
+    using BijectiveHilbert: encode_hilbert, decode_hilbert!
+
+    # Create Compact with UInt64 index, UInt32 internal coordinate type
+    c = Compact{UInt64, UInt32}([3, 2, 4])
+
+    # Encode with Int64 coordinates (different from UInt32)
+    X_int64 = Int64[5, 2, 11]
+    h = encode_hilbert_zero(c, X_int64)
+
+    # Decode into Int64 vector
+    Y_int64 = zeros(Int64, 3)
+    decode_hilbert_zero!(c, Y_int64, h)
+    @test X_int64 == Y_int64
+
+    # Encode with Int32 coordinates
+    X_int32 = Int32[5, 2, 11]
+    h2 = encode_hilbert_zero(c, X_int32)
+    @test h == h2  # Same point should give same Hilbert index
+
+    # Decode into UInt16 vector
+    Y_uint16 = zeros(UInt16, 3)
+    decode_hilbert_zero!(c, Y_uint16, h)
+    @test Y_uint16 == UInt16[5, 2, 11]
+
+    # Test 1-based API with mismatched types
+    X_1based = Int64[6, 3, 12]
+    h_1based = encode_hilbert(c, X_1based)
+    Y_1based = zeros(Int32, 3)
+    decode_hilbert!(c, Y_1based, h_1based)
+    @test Y_1based == Int32[6, 3, 12]
+end
+
+
+@testitem "Compact constructor accepts different integer vector types" begin
+    using BijectiveHilbert: Compact, encode_hilbert_zero, decode_hilbert_zero!
+    using StaticArrays
+
+    # Construct with Int32 vector
+    c1 = Compact{UInt64, UInt32}(Int32[3, 2, 4])
+    @test c1.mmax == 4
+
+    # Construct with UInt8 vector
+    c2 = Compact{UInt64, UInt32}(UInt8[3, 2, 4])
+    @test c2.mmax == 4
+
+    # Construct with tuple via SVector
+    c3 = Compact{UInt64, UInt32}(SVector(3, 2, 4))
+    @test c3.mmax == 4
+
+    # All should produce equivalent encoders
+    X = UInt32[5, 2, 11]
+    @test encode_hilbert_zero(c1, X) == encode_hilbert_zero(c2, X) == encode_hilbert_zero(c3, X)
+end
