@@ -7,7 +7,7 @@
 Sort axes by (m[j], j) ascending. Returns a permutation where axes with
 fewer bits come first, breaking ties by axis index.
 """
-function sort_axes_by_priority(m::Vector{Int})
+function sort_axes_by_priority(m::AbstractVector{<:Integer})
     n = length(m)
     perm = sortperm(collect(zip(m, 1:n)))
     return perm
@@ -15,9 +15,9 @@ end
 
 
 """
-    Compact{T,B}(m::Vector{Int})
-    Compact(T, m::Vector{Int})
-    Compact(m::Vector{Int})
+    Compact{T,B}(m::AbstractVector{<:Integer})
+    Compact(T, m::AbstractVector{<:Integer})
+    Compact(m::AbstractVector{<:Integer})
 
 Compact Hilbert curve algorithm for anisotropic grids where each axis
 can have a different number of bits.  If you don't specify type parameters
@@ -54,7 +54,7 @@ struct Compact{T, B} <: HilbertAlgorithm{T}
 end
 
 
-function Compact{T,B}(m::Vector{Int}) where {T<:Unsigned, B<:Unsigned}
+function Compact{T,B}(m::AbstractVector{<:Integer}) where {T<:Unsigned, B<:Unsigned}
     # Validate inputs
     n = length(m)
     n > 0 || throw(ArgumentError("m must be non-empty"))
@@ -95,14 +95,14 @@ function Compact{T,B}(m::Vector{Int}) where {T<:Unsigned, B<:Unsigned}
 end
 
 
-function Compact(m::Vector{Int})
+function Compact(m::AbstractVector{<:Integer})
     T = large_enough_unsigned(sum(m))       # index type from total bits
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
     Compact{T,B}(m)
 end
 
 
-function Compact(T, m::Vector{Int})
+function Compact(T, m::AbstractVector{<:Integer})
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
     Compact{T,B}(m)
 end
