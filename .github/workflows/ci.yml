@@ -39,26 +39,20 @@ jobs:
           files: lcov.info
 
   # Validate lower bounds by testing with minimum compatible versions
+  # Only runs on LTS - min deps on newest Julia isn't meaningful
   test-min-deps:
-    name: Min Deps - Julia ${{ matrix.version }}
+    name: Min Deps - Julia LTS
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        version:
-          - 'lts'
-          - '1'
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
         with:
-          version: ${{ matrix.version }}
+          version: 'lts'
       - uses: julia-actions/cache@v2
       - name: Downgrade to minimum compatible versions
         uses: julia-actions/julia-downgrade-compat@v2
         with:
           mode: 'deps'
-          skip: Statistics,LinearAlgebra,SparseArrays,Random,Test
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
