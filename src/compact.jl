@@ -102,6 +102,23 @@ function Compact(m::Vector{Int})
 end
 
 
+"""
+    Compact(HilbertType, m::Vector{Int})
+
+Convenience constructor that automatically selects type parameters based on
+the bit counts in `m`.
+
+# Example
+```julia
+c = Compact(Int32, [3, 2, 4])  # automatically selects UInt8 coordinates
+```
+"""
+function Compact(T, m::Vector{Int})
+    B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
+    Compact{T,B}(m)
+end
+
+
 axis_type(::Compact{T,B}) where {T,B} = B
 
 

@@ -7,10 +7,15 @@ CurrentModule = BijectiveHilbert
 ## Create an encoder
 
 ```julia
+    HilbertType = Int64
     simple = Simple2D(HilbertType)
+    bits = 3 # for sides of length 2^3=8
+    dimensions = 4 # It's size [8, 8, 8, 8].
     sg = SpaceGray(HilbertType, bits, dimensions)
     gg = GlobalGray(HilbertType, bits, dimensions)
     sg = FaceContinuous(HilbertType, bits, dimensions)
+    anisotropic_bits = [3, 2, 4, 3]
+    cc = Compact(HilbertType, anisotropic_bits)
 ```
 
   * `HilbertType` is an unsigned integer DataType large enough to hold the HilbertIndex. The returned HilbertIndex will have this type. Examples are `UInt32` and `UInt128`.
