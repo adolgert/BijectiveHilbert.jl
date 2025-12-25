@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = BijectiveHilbert
+```
+
 # Pseudo-Hilbert Curves for Computational Science
 
 ## Introduction
@@ -47,9 +51,3 @@ For use in scientific computing, it may be more important to judge different Hil
 * The [`FaceContinuous`](@ref) algorithm is slower and is included because it has a different shape and is historically important as the first non-recursive n-dimensional algorithm.
 
 In general, algorithms that are written explicitly for 2D are faster than n-dimensional equivalents.
-
-## Other work around Hilbert curves
-
-This library provides two functions for each algorithm, one to encode and one to decode. There is considerable work around making more-efficient queries of data stored in Hilbert order. These algorithms take a single Hilbert index and return the Hilbert index in any coordinate direction. They don't need to convert to coordinates, find the neighbor in that space, and convert back to the Hilbert index. There is also work to make rectangular queries faster, in general. These find sequences of Hilbert indexes that fall within a rectangular region in coordinate space.
-
-None of those are implemented here. They would be useful for advanced database work.

@@ -16,11 +16,8 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Usage" => "usage.md",
-        "Algorithms" => [
-            "hilbert.md",
-            "implementations.md",
-            "testing.md"
-        ]
+        "Background" => "hilbert.md",
+        "reference.md"
     ],
 )
 

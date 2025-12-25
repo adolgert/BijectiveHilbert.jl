@@ -16,9 +16,12 @@ end
 
 """
     Compact{T,B}(m::Vector{Int})
+    Compact(T, m::Vector{Int})
+    Compact(m::Vector{Int})
 
 Compact Hilbert curve algorithm for anisotropic grids where each axis
-can have a different number of bits.
+can have a different number of bits.  If you don't specify type parameters
+they are chosen for you depending on the size of `m`.
 
 # Type Parameters
 - `T` - Hilbert index type (e.g., UInt64, UInt128)
@@ -32,8 +35,16 @@ can have a different number of bits.
 c = Compact{UInt64, UInt32}([3, 2, 4])  # Dimension [2^3, 2^2, 2^4]
 h = encode_hilbert_zero(c, UInt32[5, 2, 11])
 ```
+
+This code starts with the tech report and paper by Chris Hamilton. That paper
+and subsequent versions
+make a Hilbert curve for unequal side lengths without a guarantee that consecutive
+points are adjacent. This code will always produce a lattice-continuous Hilbert
+curve.
+
+Hamilton, Chris. "Compact hilbert indices." Dalhousie University, Faculty of Computer Science, Technical Report CS-2006-07 (2006).
 """
-struct Compact{T<:Unsigned, B<:Unsigned} <: HilbertAlgorithm{T}
+struct Compact{T, B} <: HilbertAlgorithm{T}
     m::Vector{Int}           # exponents, one per axis
     mmax::Int                # max(m), number of levels
     total_bits::Int          # sum(m), bits in Hilbert index
@@ -84,17 +95,6 @@ function Compact{T,B}(m::Vector{Int}) where {T<:Unsigned, B<:Unsigned}
 end
 
 
-"""
-    Compact(m::Vector{Int})
-
-Convenience constructor that automatically selects type parameters based on
-the bit counts in `m`.
-
-# Example
-```julia
-c = Compact([3, 2, 4])  # automatically selects UInt16 index, UInt8 coordinates
-```
-"""
 function Compact(m::Vector{Int})
     T = large_enough_unsigned(sum(m))       # index type from total bits
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
@@ -102,17 +102,6 @@ function Compact(m::Vector{Int})
 end
 
 
-"""
-    Compact(HilbertType, m::Vector{Int})
-
-Convenience constructor that automatically selects type parameters based on
-the bit counts in `m`.
-
-# Example
-```julia
-c = Compact(Int32, [3, 2, 4])  # automatically selects UInt8 coordinates
-```
-"""
 function Compact(T, m::Vector{Int})
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
     Compact{T,B}(m)

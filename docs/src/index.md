@@ -1,11 +1,14 @@
+```@meta
+CurrentModule = BijectiveHilbert
+```
 
 # BijectiveHilbert
 
 Five [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve) algorithms,
 implemented from original papers, with bug fixes. Type stable, tested
-exhastively against Lean proofs.
+exhastively, including a new continuous curve for domains with unequal side lengths.
 
-See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+See [Usage](@ref) for full API documentation.
 
 ```julia
 julia> using Pkg; Pkg.add("BijectiveHilbert")
@@ -33,8 +36,12 @@ julia> X == [5, 7]
 ```
 This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve), is used most often for geospatial work or database implementation but is equally appropriate for dealing with large TIFF files. It belongs to the class of space-filling, self-avoiding, simple, and self-similar (FASS) curves, which includes Peano curves, and Morton z-curves.
 
-Included are several variations of the Hilbert curve. They are type-stable and thoroughly tested, including bug fixes to amend the published algorithms.
 
-* [`Simple2D`](https://computingkitchen.com/BijectiveHilbert.jl/stable/simple2d/) - Fastest and easiest to use for 2D only.
-* [`SpaceGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/) - Works in `N`-dimensions, all axes of the same size, maximum speed. ([`GlobalGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/) and [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/) have different patterns.
-* [`Compact`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/) - A **new** algorithm for `N`-dimensional Hilbert curves where axes can be different sizes, and the **curve is continuous.**
+## Which algorithm should I use?
+
+| Data shape | Algorithm | Notes |
+|-----------|-----------|-------|
+| 2D | [`Simple2D`](@ref) | Fastest. No setup required. |
+| N-Dimensions, same-size axes | [`SpaceGray`](@ref) | Fastest N-D. Axes must be powers of two. |
+| N-Dimensions, different-size axes | [`Compact`](@ref) | Axes can be different sizes (all powers of two). |
+| N-D, need specific pattern | [`GlobalGray`](@ref), [`FaceContinuous`](@ref) | Alternative curve shapes. |

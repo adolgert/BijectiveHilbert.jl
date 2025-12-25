@@ -1,6 +1,10 @@
-# Implementations
+```@meta
+CurrentModule = BijectiveHilbert
+```
 
-See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+# API Reference
+
+See [Usage](@ref) for API documentation.
 
 ## The Simple2D Algorithm
 
@@ -22,7 +26,7 @@ The [`SpaceGray`](@ref) algorithm is the fastest way to generate multi-dimension
 
 ## Global Gray
 
-See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+See [Usage](@ref) for API documentation.
 
 This is a very concise algorithm for Hilbert curve generation. It works in `n`-dimensions. It requires little code. It comes from a little paper [^3] behind a paywall, sadly.
 
