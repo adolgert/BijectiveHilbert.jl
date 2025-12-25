@@ -1,7 +1,11 @@
 
 # BijectiveHilbert
 
-This [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve) library encodes a multi-dimensional grid index into a single integer, such that nearby integers are nearby grid indices. See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+Five [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve) algorithms,
+implemented from original papers, with bug fixes. Type stable, tested
+exhastively against Lean proofs.
+
+See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
 
 ```julia
 julia> using Pkg; Pkg.add("BijectiveHilbert")
@@ -31,7 +35,6 @@ This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_cu
 
 Included are several variations of the Hilbert curve. They are type-stable and thoroughly tested, including bug fixes to amend the published algorithms.
 
-* [`Simple2D`](https://computingkitchen.com/BijectiveHilbert.jl/stable/simple2d/) encodes two-dimensional Cartesian indices. Fastest and easiest to use.
-* [`SpaceGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/) encodes multi-dimensional Cartesian indices that all have the same power-of-two extent. The fastest multi-dimensional version.
-* [`GlobalGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/) like SpaceGray but a different pattern.
-* [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/) like SpaceGray and GlobalGray, but another pattern again.
+* [`Simple2D`](https://computingkitchen.com/BijectiveHilbert.jl/stable/simple2d/) - Fastest and easiest to use for 2D only.
+* [`SpaceGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/) - Works in `N`-dimensions, all axes of the same size, maximum speed. ([`GlobalGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/) and [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/) have different patterns.
+* [`Compact`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/) - A **new** algorithm for `N`-dimensional Hilbert curves where axes can be different sizes, and the **curve is continuous.**
