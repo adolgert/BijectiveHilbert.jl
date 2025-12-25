@@ -5,7 +5,7 @@ using Documenter
 makedocs(;
     modules=[BijectiveHilbert],
     warnonly = [:missing_docs],
-    authors="Andrew Dolgert <adolgert@cmu.edu>",
+    authors="Andrew Dolgert <adolgert@andrew.cmu.edu>",
     repo=Remotes.GitHub("adolgert", "BijectiveHilbert.jl"),
     sitename="BijectiveHilbert.jl",
     format=Documenter.HTML(;
