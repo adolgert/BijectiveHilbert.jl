@@ -39,6 +39,61 @@ using TestItemRunner
 end
 
 
+@testitem "Compact convenience constructor type selection" begin
+    using BijectiveHilbert: Compact, index_type, axis_type
+
+    # sum(m)=9 fits in UInt8 (8 bits)? No -> UInt16; max(m)=4 fits in UInt8
+    c1 = Compact([3, 2, 4])
+    @test index_type(c1) == UInt16
+    @test axis_type(c1) == UInt8
+
+    # sum(m)=6 fits in UInt8; max(m)=3 fits in UInt8
+    c2 = Compact([2, 2, 2])
+    @test index_type(c2) == UInt8
+    @test axis_type(c2) == UInt8
+
+    # sum(m)=8 fits in UInt8; max(m)=8 fits in UInt8
+    c3 = Compact([8])
+    @test index_type(c3) == UInt8
+    @test axis_type(c3) == UInt8
+
+    # sum(m)=9 needs UInt16; max(m)=9 needs UInt16
+    c4 = Compact([9])
+    @test index_type(c4) == UInt16
+    @test axis_type(c4) == UInt16
+
+    # sum(m)=16 fits in UInt16; max(m)=8 fits in UInt8
+    c5 = Compact([8, 8])
+    @test index_type(c5) == UInt16
+    @test axis_type(c5) == UInt8
+
+    # sum(m)=17 needs UInt32; max(m)=9 needs UInt16
+    c6 = Compact([9, 8])
+    @test index_type(c6) == UInt32
+    @test axis_type(c6) == UInt16
+
+    # sum(m)=32 fits in UInt32; max(m)=16 fits in UInt16
+    c7 = Compact([16, 16])
+    @test index_type(c7) == UInt32
+    @test axis_type(c7) == UInt16
+
+    # sum(m)=33 needs UInt64; max(m)=17 needs UInt32
+    c8 = Compact([17, 16])
+    @test index_type(c8) == UInt64
+    @test axis_type(c8) == UInt32
+
+    # sum(m)=60 fits in UInt64; max(m)=20 fits in UInt32
+    c9 = Compact([20, 20, 20])
+    @test index_type(c9) == UInt64
+    @test axis_type(c9) == UInt32
+
+    # sum(m)=65 needs UInt128; max(m)=33 needs UInt64
+    c10 = Compact([33, 32])
+    @test index_type(c10) == UInt128
+    @test axis_type(c10) == UInt64
+end
+
+
 @testitem "Compact basic encode/decode" begin
     using BijectiveHilbert: Compact, encode_hilbert_zero, decode_hilbert_zero!
 

@@ -29,7 +29,7 @@ can have a different number of bits.
 
 # Example
 ```julia
-c = Compact{UInt64, UInt32}([3, 2, 4])  # 3 bits for x, 2 for y, 4 for z
+c = Compact{UInt64, UInt32}([3, 2, 4])  # Dimension [2^3, 2^2, 2^4]
 h = encode_hilbert_zero(c, UInt32[5, 2, 11])
 ```
 """
@@ -81,6 +81,24 @@ function Compact{T,B}(m::Vector{Int}) where {T<:Unsigned, B<:Unsigned}
     end
 
     Compact{T,B}(copy(m), mmax, total_bits, k_level, axes_level, pos_level)
+end
+
+
+"""
+    Compact(m::Vector{Int})
+
+Convenience constructor that automatically selects type parameters based on
+the bit counts in `m`.
+
+# Example
+```julia
+c = Compact([3, 2, 4])  # automatically selects UInt16 index, UInt8 coordinates
+```
+"""
+function Compact(m::Vector{Int})
+    T = large_enough_unsigned(sum(m))       # index type from total bits
+    B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
+    Compact{T,B}(m)
 end
 
 
