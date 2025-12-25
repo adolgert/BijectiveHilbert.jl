@@ -3,25 +3,21 @@ using Documenter
 
 
 makedocs(;
-    # modules=[BijectiveHilbert],
-    authors="Andrew Dolgert <adolgert@uw.edu>",
+    modules=[BijectiveHilbert],
+    warnonly = [:missing_docs],
+    authors="Andrew Dolgert <adolgert@cmu.edu>",
     repo=Remotes.GitHub("adolgert", "BijectiveHilbert.jl"),
     sitename="BijectiveHilbert.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://adolgert.github.io/BijectiveHilbert.jl",
+        canonical="https://computingkitchen.com/BijectiveHilbert.jl",
         assets=String[],
     ),
     pages=[
         "Home" => "index.md",
         "Usage" => "usage.md",
-        "Algorithms" => [
-            "hilbert.md",
-            "simple2d.md",
-            "globalgray.md",
-            "compact.md",
-            "facecontinuous.md"
-        ]
+        "Background" => "hilbert.md",
+        "reference.md"
     ],
 )
 

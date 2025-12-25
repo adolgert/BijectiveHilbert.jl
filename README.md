@@ -5,7 +5,9 @@
 [![Build Status](https://github.com/adolgert/BijectiveHilbert.jl/workflows/CI/badge.svg)](https://github.com/adolgert/BijectiveHilbert.jl/actions)
 [![Coverage](https://codecov.io/github/adolgert/BijectiveHilbert.jl/graph/badge.svg?token=gfF08n6KKg)](https://codecov.io/github/adolgert/BijectiveHilbert.jl)
 
-This [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve) library encodes a multi-dimensional grid index into a single integer, such that nearby integers are nearby grid indices. See the [`Usage`](https://computingkitchen.com/BijectiveHilbert.jl/stable/usage/).
+Five [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve) algorithms,
+implemented from original papers, with bug fixes. Type stable, tested
+exhastively, including a new continuous curve for domains with unequal side lengths.
 
 ```julia
 julia> using Pkg; Pkg.add("BijectiveHilbert")
@@ -35,11 +37,15 @@ This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_cu
 
 Included are several variations of the Hilbert curve. They are type-stable and thoroughly tested, including bug fixes to amend the published algorithms.
 
-* [`Simple2D`](https://computingkitchen.com/BijectiveHilbert.jl/stable/simple2d/) encodes two-dimensional Cartesian indices. Fastest and easiest to use.
-* [`SpaceGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/compact/) encodes multi-dimensional Cartesian indices that all have the same power-of-two extent. The fastest multi-dimensional version.
-* [`GlobalGray`](https://computingkitchen.com/BijectiveHilbert.jl/stable/globalgray/) like SpaceGray but a different pattern.
-* [`FaceContinuous`](https://computingkitchen.com/BijectiveHilbert.jl/stable/facecontinuous/) like SpaceGray and GlobalGray, but another pattern again.
+## Release Notes
 
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.5.0 | 2025-04-14 | Simple2D is 2x faster, added support for StaticArrays |
+| 0.4.0 | 2023-12-29 | Removed Compact from interface, comprehensive test suite |
+| 0.3.0 | 2021-03-01 | Made Simple2D type-stable, combinatorial testing |
+| 0.2.0 | 2021-02-03 | Fixed bitshifting bug, improved GlobalGray type handling |
+| 0.1.0 | 2020-12-17 | Initial release |
 
 ## Hilbert curves for computation
 

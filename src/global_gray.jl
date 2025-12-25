@@ -136,6 +136,8 @@ John Skilling, 707 (2004), http://dx.doi.org/10.1063/1.1751381.
 I call it "Global Gray" because the insight of the article
 is that a single, global Gray code can be applied to all
 np bits of a Hilbert length.
+
+For developers, note that this algorithm relies on encoding the Hilbert index in what, to me, was a surprising order. To understand the interleaving of the Hilbert index for this algorithm, start with a 2D value where higher bits are larger subscripts, ``(a_4a_3a_2a_1, b_4b_3b_2b_1)``. Skilling encodes this as ``a_4b_4a_3b_3a_2b_2a_1b_1``, which looks good on paper, but it means the first element of the vector has the higher bits.
 """
 struct GlobalGray{T} <: HilbertAlgorithm{T}
     b::Int

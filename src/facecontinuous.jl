@@ -11,6 +11,9 @@ This is the Butz algorithm, as presented by Lawder. Haverkort2017
 says it is face continuous. The code is in lawder.c.
 The original paper had an error, and Lawder put a correction on his website.
 http://www.dcs.bbk.ac.uk/~jkl/publications.html
+
+ - Butz, Arthur R. "Alternative algorithm for Hilbert's space-filling curve." IEEE Transactions on Computers 100.4 (1971): 424-426.
+ - Lawder, Jonathan K. "Calculation of mappings between one and n-dimensional values using the hilbert space-filling curve." School of Computer Science and Information Systems, Birkbeck College, University of London, London Research Report BBKCS-00-01 August (2000).
 """
 struct FaceContinuous{T} <: HilbertAlgorithm{T}
     b::Int

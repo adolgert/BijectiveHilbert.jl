@@ -322,6 +322,8 @@ end
 This is an n-dimensional Hilbert curve where all `n` dimensions
 must have `b` bits in size. It was described in the same paper
 and examples as the `Compact` algorithm.
+
+ - Hamilton, Chris H., and Andrew Rau-Chaplin. "Compact Hilbert indices for multi-dimensional data." First International Conference on Complex, Intelligent and Software Intensive Systems (CISIS'07). IEEE, 2007.
 """
 struct SpaceGray{T,B} <: HilbertAlgorithm{T}
     b::Int
