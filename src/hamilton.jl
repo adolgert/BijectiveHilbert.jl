@@ -16,7 +16,7 @@ using StaticArrays: MVector
 # hi_g(i) is the direction in which brgc changes.
 # It is also tells us the axis along which the exit of one
 # subcube meets the entrance of the next subcube.
-hi_g(i) = trailing_set_bits(i)
+hi_g(i) = trailing_ones(i)
 # This is the definition of g, to compare against for testing.
 hi_g_orig(i) = floor(typeof(i), log2(brgc(i) ⊻ brgc(i + 1)))
 
