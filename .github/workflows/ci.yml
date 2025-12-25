@@ -11,14 +11,14 @@ jobs:
       matrix:
         version:
           - 'lts'
-          - '1.11'
+          - '1'
         os:
           - ubuntu-latest
         include:
-          - version: "1.11"
+          - version: '1'
             os: macOS-latest
             arch: arm64
-          - version: "1.11"
+          - version: '1'
             os: windows-latest
             arch: x64
         arch:
@@ -37,6 +37,26 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
+
+  # Validate lower bounds by testing with minimum compatible versions
+  # Only runs on LTS - min deps on newest Julia isn't meaningful
+  test-min-deps:
+    name: Min Deps - Julia LTS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: 'lts'
+      - uses: julia-actions/cache@v2
+      - name: Downgrade to minimum compatible versions
+        uses: julia-actions/julia-downgrade-compat@v2
+        with:
+          mode: 'deps'
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          allow_reresolve: false
   docs:
     name: Documentation
     permissions:
