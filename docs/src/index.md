@@ -45,3 +45,13 @@ This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_cu
 | N-Dimensions, same-size axes | [`SpaceGray`](@ref) | Fastest N-D. Axes must be powers of two. |
 | N-Dimensions, different-size axes | [`Compact`](@ref) | Axes can be different sizes (all powers of two). |
 | N-D, need specific pattern | [`GlobalGray`](@ref), [`FaceContinuous`](@ref) | Alternative curve shapes. |
+
+## Release Notes
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.5.0 | 2025-04-14 | Simple2D is 2x faster, added support for StaticArrays |
+| 0.4.0 | 2023-12-29 | Removed Compact from interface, comprehensive test suite |
+| 0.3.0 | 2021-03-01 | Made Simple2D type-stable, combinatorial testing |
+| 0.2.0 | 2021-02-03 | Fixed bitshifting bug, improved GlobalGray type handling |
+| 0.1.0 | 2020-12-17 | Initial release |
