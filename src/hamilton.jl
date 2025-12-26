@@ -197,24 +197,6 @@ function hilbert_index_inv_paper!(::Type{T}, n, m, h, p) where {T <: Integer}
 end
 
 
-# Make d an argument because it determines the initial direction and maybe
-# it isn't initialized correctly. Maybe d and e need different initial values.
-function hilbert_index(n, m, p, d = zero(eltype(p)))
-    h = zero(eltype(p))  # hilbert index
-    e = zero(eltype(p))  # entry point
-    for i = (m - 1):-1:0  # i is an index. Can be any type.
-        l = ith_bit_of_indices(n, p, i)
-        # @show l
-        l = hi_T(l, d, e, n)  # n or m?
-        w = brgc_inv(l)
-        h = (h << n) | w
-        e = e ⊻ rotateleft(hi_e(w), d + one(d), n)
-        d = (d + hi_d(w, n) + one(d)) % n  # n or m for hi_d?
-    end
-    h
-end
-
-
 """
 Calculates a bit-mask for excluding Gray code values when the level
 is below the resolution of the dimension.
@@ -265,53 +247,6 @@ function extract_mask_paper(m::AbstractVector, n, d, i)
         end
     end
     mask, b
-end
-
-
-"""
-From GrayCodeRank.hpp: compactIndex.
-"""
-function compact_index(ms::AbstractVector, ds::AbstractVector, n, m, h::T) where {T}
-    hc = zero(T)
-    hr = 0
-    hcr = 0
-    hm = one(T)
-    hcm = one(T)
-    for i = 0:(m-1)
-        j = ds[i + 1]
-        while true
-            if ms[j + 1] > i
-                if hr > 0
-                    error("hr on next rack")
-                end
-                if ((h & hm) != 0)
-                    if hcr == 0
-                        hc |= hcm
-                    else
-                        error("should only be one rack")
-                    end
-                end
-                hcm <<= 1
-                if hcm == 0
-                    hcm = one(T)
-                    hcr += 1
-                end
-            end
-            j += 1
-            if j == n
-                j = 0
-            end
-            hm <<= 1
-            if hm == zero(T)
-                hm = one(T)
-                hr += 1
-            end
-            if j == ds[i + 1]
-                break
-            end
-        end
-    end
-    hc
 end
 
 

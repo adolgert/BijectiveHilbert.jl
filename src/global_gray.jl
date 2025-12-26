@@ -96,31 +96,6 @@ end
 
 
 """
-Takes a vector of length `n` and places the bits of all `n` integers
-into a single integer. The vector's 1st component is the least significant bit.
-"""
-function interleave_transpose_low(::Type{T}, X::AbstractVector{T}, b, n) where {T}
-    h = zero(T)
-    for i in 0:(b - 1)
-        for d in 1:n
-            h |= ((X[d] & (one(T)<<i))) << (i*(n - 1) + d - 1)
-        end
-    end
-    h
-end
-
-
-function outerleave_transpose_low!(X::AbstractVector{T}, h, b, n) where {T <: Integer}
-    X .= zero(T)
-    for i in 0:(b-1)
-        for d in 1:n
-            X[d] |= (h & (one(T) << (i * n + d - 1))) >> (i * (n - 1) + d - 1)
-        end
-    end
-end
-
-
-"""
     GlobalGray(b, n)
     GlobalGray(T, b, n)
 
