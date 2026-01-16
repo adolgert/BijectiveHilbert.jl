@@ -98,6 +98,73 @@ end
     together = copy(pts_original)
     hilbertsort!(together, encoder=encoder, bits_per_axis=bits_per_axis)
     @test together == bare
+    copied = hilbertsort(pts_original)
+    @test copied == bare
+end
+
+
+@testitem "sort bit sizes" begin
+    using BijectiveHilbert
+    using StaticArrays
+    using Random
+
+    rng = Xoshiro(293482)
+    n = 10
+    pts_original = [SVector{2,Float32}(rand(rng, 2)...) for _ in 1:n]
+    cp = copy(pts_original)
+    hilbertsort!(cp)
+    @test length(cp) == length(pts_original)
+    @test Set(pts_original) == Set(cp)
+    @test pts_original != cp
+end
+
+
+@testitem "sort one and none" begin
+    using BijectiveHilbert
+    using StaticArrays
+    using Random
+
+    rng = Xoshiro(293482)
+    n = 10
+    pts_original = [SVector{2,Float32}(rand(rng, 2)...) for _ in 1:n]
+    cp = copy(pts_original[1:1])
+    hilbertsort!(cp)
+    @test length(cp) == 1
+    cp = copy(pts_original[1:2])
+    hilbertsort!(cp)
+    @test length(cp) == 2
+end
+
+
+@testitem "sort regular vectors" begin
+    using BijectiveHilbert
+    using StaticArrays
+    using Random
+
+    rng = Xoshiro(293482)
+    n = 10
+    pts_original = [rand(rng, 2) for _ in 1:n]
+    cp = copy(pts_original)
+    hilbertsort!(cp)
+    @test length(cp) == length(pts_original)
+    @test Set(pts_original) == Set(cp)
+    @test pts_original != cp
+end
+
+@testitem "sort matrix" begin
+    using BijectiveHilbert
+    using StaticArrays
+    using Random
+
+    rng = Xoshiro(293482)
+    n = 10
+    pts_original = [SVector{2,Float64}(rand(rng, 2)...) for _ in 1:n]
+    pts2d_matrix = reduce(hcat, pts_original)
+    hilbertsort!(pts2d_matrix)
+    pts_copy = copy(pts_original)
+    hilbertsort!(pts_copy)
+    pts2d_compare = reduce(hcat, pts_copy)
+    @test pts2d_compare == pts2d_matrix
 end
 
 
