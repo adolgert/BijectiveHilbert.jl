@@ -9,37 +9,45 @@ function normalizer_to_12d(xv::AbstractVector{<:AbstractVector})
   (minx, divisor)
 end
 
-# send the float in [1,2) to a 52 bit UInt, and then add 12 zeros in front of
-# the binary to make a UInt64.
-function float_to_int(x::Float64)
-  as_uint = reinterpret(UInt64, x)
-  UInt64(as_uint & ((UInt64(1) << 52) - 1))
+# send the float in [1,2) to its mantissa bits as a UInt
+# For Float64: extracts the 52 explicit mantissa bits
+# Works generically for Float16, Float32, Float64, etc.
+function float_to_int(x::T) where {T <: AbstractFloat}
+  UI = Base.uinttype(T)
+  nbits = Base.significand_bits(T)
+  # For floats in [1,2), subtract 1 to get [0,1), then scale to [0, 2^nbits)
+  UI((x - one(T)) * (one(UI) << nbits))
 end
-float_to_int(x::SVector{D,Float64}) where{D} = float_to_int.(x)
+float_to_int(x::SVector{D,T}) where {D,T<:AbstractFloat} = float_to_int.(x)
 
 struct NormalizingHilbertEncoder{D,E}
   minx::SVector{D,Float64}
   divisor::Float64
   encoder::E
+  shift::Int  # Right shift amount to extract top bits_per_axis from mantissa
 end
 
 function NormalizingHilbertEncoder(pts, encoder::Type{SpaceGray},
                                    bits_per_axis::Int)
   (minx, divisor) = normalizer_to_12d(pts)
   encoder = SpaceGray(bits_per_axis, length(minx))
-  NormalizingHilbertEncoder(minx, divisor, encoder)
+  shift = Base.significand_bits(Float64) - bits_per_axis
+  NormalizingHilbertEncoder(minx, divisor, encoder, shift)
 end
 
 function NormalizingHilbertEncoder(pts, encoder::Type{Simple2D},
                                    bits_per_axis::Int)
   (minx, divisor) = normalizer_to_12d(pts)
-  encoder = Simple2D(UInt128) 
-  NormalizingHilbertEncoder(minx, divisor, encoder)
+  encoder = Simple2D(UInt128)
+  shift = Base.significand_bits(Float64) - bits_per_axis
+  NormalizingHilbertEncoder(minx, divisor, encoder, shift)
 end
 
-function (he::NormalizingHilbertEncoder{D,E})(x) where{D,E} 
+function (he::NormalizingHilbertEncoder{D,E})(x) where{D,E}
   x_12 = SVector{D,Float64}(ntuple(j->(x[j] - he.minx[j])/he.divisor + 1, D))
-  encode_hilbert(he.encoder, float_to_int(x_12))
+  # Extract mantissa bits and shift to use the top bits_per_axis bits
+  scaled_coords = float_to_int(x_12) .>> he.shift
+  encode_hilbert(he.encoder, scaled_coords)
 end
 
 function default_encoder(pts::AbstractVector{<:AbstractVector})
