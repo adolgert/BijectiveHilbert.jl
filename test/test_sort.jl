@@ -77,6 +77,30 @@ using LinearAlgebra
 end
 
 
+@testitem "sort smoke" begin
+    using BijectiveHilbert
+    using StaticArrays
+    using Random
+
+    rng = Xoshiro(293482)
+    n = 10
+    pts_original = [SVector{2,Float64}(rand(rng, 2)...) for _ in 1:n]
+    bare = copy(pts_original)
+    hilbertsort!(bare)
+    encoder = Simple2D(UInt128)
+    enc = copy(pts_original)
+    hilbertsort!(enc; encoder=encoder)
+    @test enc == bare
+    bits_per_axis = 52
+    bits = copy(pts_original)
+    hilbertsort!(bits; bits_per_axis=bits_per_axis)
+    @test bits == bare
+    together = copy(pts_original)
+    hilbertsort!(together, encoder=encoder, bits_per_axis=bits_per_axis)
+    @test together == bare
+end
+
+
 @testitem "2D Locality" setup=[LocalityMetrics] begin
     using BijectiveHilbert
     using StaticArrays

@@ -69,16 +69,9 @@ Sorts `pts` using a Hilbert space-filling curve in-place.
 """
 function hilbertsort!(pts::AbstractVector{<:AbstractVector}; 
                       encoder=default_encoder(pts),
-                      with_buffer=false,
                       bits_per_axis::Int=max_bits_per_axis(length(first(pts))))
   norm_encoder = NormalizingHilbertEncoder(normalizer_to_12d(pts)..., encoder, bits_per_axis)
-  if with_buffer
-    buffer = norm_encoder.(pts)
-    sp     = sortperm(buffer)
-    permute!(pts, sp)
-  else
-    sort!(pts, by = norm_encoder, alg=QuickSort)
-  end
+  permute!(pts, sortperm(norm_encoder.(pts)))
   pts
 end
 
@@ -91,4 +84,3 @@ function hilbertsort(pts::AbstractVector{<:AbstractVector}; kwargs...)
   _pts = copy(pts)
   hilbertsort!(_pts; kwargs...)
 end
-
