@@ -25,22 +25,22 @@ struct NormalizingHilbertEncoder{D,E}
   divisor::Float64
   encoder::E
   shift::Int  # Right shift amount to extract top bits_per_axis from mantissa
+  function NormalizingHilbertEncoder(minx::SVector{D}, divisor::Float64,
+        encoder::E, bits_per_axis) where {D,E <: HilbertAlgorithm}
+      new{D,E}(minx, divisor, encoder, Base.significand_bits(Float64) - bits_per_axis)
+  end
 end
 
-function NormalizingHilbertEncoder(pts, encoder::Type{SpaceGray},
+function NormalizingHilbertEncoder(minx, divisor, encoder::Type{SpaceGray},
                                    bits_per_axis::Int)
-  (minx, divisor) = normalizer_to_12d(pts)
   encoder = SpaceGray(bits_per_axis, length(minx))
-  shift = Base.significand_bits(Float64) - bits_per_axis
-  NormalizingHilbertEncoder(minx, divisor, encoder, shift)
+  NormalizingHilbertEncoder(minx, divisor, encoder, bits_per_axis)
 end
 
-function NormalizingHilbertEncoder(pts, encoder::Type{Simple2D},
+function NormalizingHilbertEncoder(minx, divisor, encoder::Type{Simple2D},
                                    bits_per_axis::Int)
-  (minx, divisor) = normalizer_to_12d(pts)
   encoder = Simple2D(UInt128)
-  shift = Base.significand_bits(Float64) - bits_per_axis
-  NormalizingHilbertEncoder(minx, divisor, encoder, shift)
+  NormalizingHilbertEncoder(minx, divisor, encoder, bits_per_axis)
 end
 
 function (he::NormalizingHilbertEncoder{D,E})(x) where{D,E}
@@ -57,7 +57,7 @@ end
 default_encoder(pts::Vector{SVector{2,Float64}}) = Simple2D
 
 # Maximum bits per axis that fits in UInt128 for a given dimension
-max_bits_per_axis(D::Int) = min(52, 128 ÷ D)
+max_bits_per_axis(D::Int) = min(Base.significand_bits(Float64), (8*sizeof(UInt128)) ÷ D)
 
 """
     hilbertsort!(pts::AbstractVector{<:AbstractVector};
@@ -71,7 +71,7 @@ function hilbertsort!(pts::AbstractVector{<:AbstractVector};
                       encoder=default_encoder(pts),
                       with_buffer=false,
                       bits_per_axis::Int=max_bits_per_axis(length(first(pts))))
-  norm_encoder = NormalizingHilbertEncoder(pts, encoder, bits_per_axis)
+  norm_encoder = NormalizingHilbertEncoder(normalizer_to_12d(pts)..., encoder, bits_per_axis)
   if with_buffer
     buffer = norm_encoder.(pts)
     sp     = sortperm(buffer)
