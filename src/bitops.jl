@@ -1,5 +1,8 @@
+
+using BitIntegers: UInt256, UInt512, UInt1024
+
 function large_enough_unsigned(bit_cnt)
-    unsigned_types = [UInt8, UInt16, UInt32, UInt64, UInt128]
+    unsigned_types = [UInt8, UInt16, UInt32, UInt64, UInt128, UInt256, UInt512, UInt1024]
     atype = nothing
     for xtype in unsigned_types
         if sizeof(xtype) * 8 >= bit_cnt
@@ -7,6 +10,7 @@ function large_enough_unsigned(bit_cnt)
             break
         end
     end
+    isnothing(atype) && error("Your required number of bits ($(bit_cnt)) is sufficiently large that a pre-defined UIntXXX type is not available.")
     return atype
 end
 
