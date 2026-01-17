@@ -21,4 +21,6 @@ encode_hilbert
 decode_hilbert!
 encode_hilbert_zero
 decode_hilbert_zero!
+hilbertsort
+hilbertsort!
 ```

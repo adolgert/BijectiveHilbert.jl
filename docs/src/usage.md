@@ -63,6 +63,20 @@ hilbert_index = encode_hilbert_zero(encoder, point)
 decode_hilbert_zero!(encoder, point_out, hilbert_index)
 ```
 
+## Sorting
+
+Sort a `Vector{<:AbstractVector}` according to a Hilbert curve:
+```julia
+points = [rand(3) for _ in 1:1000]
+hilbertsort!(points)
+```
+Methods for matrix arguments are also supported:
+```julia
+points_mat = permutedims(reduce(hcat, points))
+hilbertsort!(points_mat)
+```
+
+
 ## Performance Tips
 
 - Use `StaticArrays.MVector` for the point vector when encoding/decoding in a tight loop

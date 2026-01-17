@@ -89,8 +89,8 @@ function encode_all_hilbert(he::NormalizingHilbertEncoder{D,E}, pts::AbstractMat
 end
 
 function hilbertsort!(pts::AbstractMatrix;
-                        encoder=default_encoder_matrix(pts),
-                        bits_per_axis::Int=max_bits_per_axis(size(pts, 1)))
+                      encoder=default_encoder_matrix(pts),
+                      bits_per_axis::Int=max_bits_per_axis(size(pts, 1)))
 
     if size(pts, 2) <= 1
       return pts
