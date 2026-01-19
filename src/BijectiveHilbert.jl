@@ -53,4 +53,7 @@ export Compact
 
 include("suite.jl")
 
+include("sort.jl")
+export hilbertsort!, hilbertsort
+
 end

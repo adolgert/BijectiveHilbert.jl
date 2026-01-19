@@ -1,13 +1,13 @@
 name = "BijectiveHilbert"
 uuid = "91e7fc40-53cd-4118-bd19-d7fcd1de2a54"
-authors = ["Andrew Dolgert <adolgert@andrew.cmu.edu>"]
 version = "0.6.0"
+authors = ["Andrew Dolgert <adolgert@andrew.cmu.edu>"]
 
 [deps]
-StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+StaticArraysCore = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
 TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 
 [compat]
-StaticArrays = "^1"
+StaticArraysCore = "1.4.4"
 TestItems = "^1.0"
 julia = "1.7"

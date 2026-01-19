@@ -1,4 +1,4 @@
-using StaticArrays: MVector
+using StaticArraysCore: MVector
 
 # Compact Hilbert Indices by Chris Hamilton. Technical Report CS-2006-07.
 # 6059 University Ave., Halifax, Nova Scotia, B3H 1W5, Canada.
