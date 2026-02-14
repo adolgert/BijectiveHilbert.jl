@@ -96,6 +96,16 @@ end
 end
 
 
+@testitem "Simple2D encode accepts Int coordinates" begin
+    using BijectiveHilbert
+    gg = Simple2D(UInt)
+    X_int = [5, 3]
+    X_uint = UInt[5, 3]
+    @test encode_hilbert_zero(gg, X_int) == encode_hilbert_zero(gg, X_uint)
+    @test encode_hilbert(gg, X_int .+ 1) == encode_hilbert(gg, X_uint .+ 1)
+end
+
+
 @testitem "Simple2D type interactions" begin
     using BijectiveHilbert
     using UnitTestDesign
