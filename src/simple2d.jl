@@ -72,7 +72,7 @@ function encode_hilbert_zero(::Simple2D{T}, X::AbstractVector{A})::T where {A, T
 end
 
 
-function decode_hilbert_zero!(::Simple2D{T}, X::AbstractVector{A}, z::T) where {A,T}
+function decode_hilbert_zero!(::Simple2D{T}, X::AbstractVector{A}, z::T) where {A,T<:Integer}
     r = z & T(3)
     x = (r & 2) >> 1
     y = ((r + 1) & 2) >> 1
@@ -106,6 +106,10 @@ function decode_hilbert_zero!(::Simple2D{T}, X::AbstractVector{A}, z::T) where {
     end
     X[1] = x
     X[2] = y
+end
+
+function decode_hilbert_zero!(s2d::Simple2D{T}, X::AbstractVector, z::Integer) where {T}
+    decode_hilbert_zero!(s2d, X, T(z))
 end
 
 end

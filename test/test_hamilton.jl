@@ -477,3 +477,25 @@ end
     @test X[2] == 3
     @test X[3] == 7
 end
+
+
+@testitem "SpaceGray decode accepts Int index" begin
+    using BijectiveHilbert
+    gg = SpaceGray(3, 4)
+    X = zeros(Int, 4)
+    decode_hilbert_zero!(gg, X, 5)
+    @test encode_hilbert_zero(gg, X) == index_type(gg)(5)
+    decode_hilbert!(gg, X, 6)
+    @test all(x -> x >= 1, X)
+end
+
+
+@testitem "SpaceGray encode accepts Int coordinates" begin
+    using BijectiveHilbert
+    gg = SpaceGray(3, 4)
+    AT = axis_type(gg)
+    X_int = [5, 2, 3, 1]
+    X_uint = AT[5, 2, 3, 1]
+    @test encode_hilbert_zero(gg, X_int) == encode_hilbert_zero(gg, X_uint)
+    @test encode_hilbert(gg, X_int .+ 1) == encode_hilbert(gg, X_uint .+ 1)
+end

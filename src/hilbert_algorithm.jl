@@ -22,7 +22,11 @@ end
 A 1-based Hilbert decode, from [`decode_hilbert_zero!`](@ref). Both the Hilbert
 index and the axes start counting at 1 instead of 0.
 """
-function decode_hilbert!(gg::HilbertAlgorithm{T}, X::AbstractVector{A}, h::T) where {A,T}
+function decode_hilbert!(gg::HilbertAlgorithm{T}, X::AbstractVector{A}, h::T) where {A,T<:Integer}
     decode_hilbert_zero!(gg, X, h - one(T))
     X .+= one(A)
+end
+
+function decode_hilbert!(gg::HilbertAlgorithm{T}, X::AbstractVector, h::Integer) where {T}
+    decode_hilbert!(gg, X, T(h))
 end

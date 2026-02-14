@@ -87,3 +87,25 @@ for n in [2, 3, 5]
     end
 end
 end
+
+
+@testitem "FaceContinuous decode accepts Int index" begin
+    using BijectiveHilbert
+    fc = FaceContinuous(3, 3)
+    X = zeros(UInt32, 3)
+    decode_hilbert_zero!(fc, X, 5)
+    @test encode_hilbert_zero(fc, X) == index_type(fc)(5)
+    decode_hilbert!(fc, X, 6)
+    @test all(x -> x >= 1, X)
+end
+
+
+@testitem "FaceContinuous encode accepts Int coordinates" begin
+    using BijectiveHilbert
+    fc = FaceContinuous(3, 3)
+    AT = axis_type(fc)
+    X_int = [5, 2, 3]
+    X_uint = AT[5, 2, 3]
+    @test encode_hilbert_zero(fc, X_int) == encode_hilbert_zero(fc, X_uint)
+    @test encode_hilbert(fc, X_int .+ 1) == encode_hilbert(fc, X_uint .+ 1)
+end

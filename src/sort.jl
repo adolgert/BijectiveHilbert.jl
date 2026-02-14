@@ -1,5 +1,5 @@
 
-using StaticArraysCore: SVector
+using StaticArrays: SVector
 
 function normalizer_to_12d(xv::AbstractVector{<:AbstractVector})
   D = length(first(xv))

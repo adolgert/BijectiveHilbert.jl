@@ -1,4 +1,4 @@
-using StaticArraysCore: MVector
+using StaticArrays: MVector
 
 # Compact Hilbert Indices by Chris Hamilton. Technical Report CS-2006-07.
 # 6059 University Ave., Halifax, Nova Scotia, B3H 1W5, Canada.
@@ -287,6 +287,10 @@ function encode_hilbert_zero(g::SpaceGray{T}, X::AbstractVector)::T where {T}
 end
 
 
-function decode_hilbert_zero!(g::SpaceGray{T}, X::AbstractVector, h::T) where {T}
+function decode_hilbert_zero!(g::SpaceGray{T}, X::AbstractVector, h::T) where {T<:Integer}
     hilbert_index_inv_paper!(T, g.n, g.b, h, X)
+end
+
+function decode_hilbert_zero!(g::SpaceGray{T}, X::AbstractVector, h::Integer) where {T}
+    decode_hilbert_zero!(g, X, T(h))
 end

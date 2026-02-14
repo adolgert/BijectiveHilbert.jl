@@ -330,7 +330,7 @@ function encode_hilbert_zero(fc::FaceContinuous{T}, X::AbstractVector{A})::T whe
 end
 
 
-function decode_hilbert_zero!(fc::FaceContinuous{T}, X::AbstractVector{A}, h::T) where {A,T}
+function decode_hilbert_zero!(fc::FaceContinuous{T}, X::AbstractVector{A}, h::T) where {A,T<:Integer}
     # H is in a larger type T but algorithm expects it packed into a vector of A.
     hvec = zeros(A, fc.n)
     for i in 1:fc.n
@@ -338,4 +338,8 @@ function decode_hilbert_zero!(fc::FaceContinuous{T}, X::AbstractVector{A}, h::T)
         h >>= 8 * sizeof(A)
     end
     H_decode!(fc, hvec, X)
+end
+
+function decode_hilbert_zero!(fc::FaceContinuous{T}, X::AbstractVector, h::Integer) where {T}
+    decode_hilbert_zero!(fc, X, T(h))
 end

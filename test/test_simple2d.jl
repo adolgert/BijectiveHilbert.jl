@@ -85,6 +85,27 @@ end
 end
 
 
+@testitem "Simple2D decode accepts Int index" begin
+    using BijectiveHilbert
+    gg = Simple2D(UInt)
+    X = zeros(Int, 2)
+    decode_hilbert_zero!(gg, X, 5)
+    @test encode_hilbert_zero(gg, X) == index_type(gg)(5)
+    decode_hilbert!(gg, X, 6)
+    @test all(x -> x >= 1, X)
+end
+
+
+@testitem "Simple2D encode accepts Int coordinates" begin
+    using BijectiveHilbert
+    gg = Simple2D(UInt)
+    X_int = [5, 3]
+    X_uint = UInt[5, 3]
+    @test encode_hilbert_zero(gg, X_int) == encode_hilbert_zero(gg, X_uint)
+    @test encode_hilbert(gg, X_int .+ 1) == encode_hilbert(gg, X_uint .+ 1)
+end
+
+
 @testitem "Simple2D type interactions" begin
     using BijectiveHilbert
     using UnitTestDesign
