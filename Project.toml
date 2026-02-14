@@ -4,10 +4,10 @@ version = "0.6.0"
 authors = ["Andrew Dolgert <adolgert@andrew.cmu.edu>"]
 
 [deps]
-StaticArraysCore = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 
 [compat]
-StaticArraysCore = "1.4.4"
+StaticArrays = "1.9.16"
 TestItems = "^1.0"
 julia = "1.7"
