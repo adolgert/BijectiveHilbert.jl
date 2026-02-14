@@ -299,3 +299,19 @@ end
     X = UInt32[5, 2, 11]
     @test encode_hilbert_zero(c1, X) == encode_hilbert_zero(c2, X) == encode_hilbert_zero(c3, X)
 end
+
+
+@testitem "Compact decode accepts Int index" begin
+    using BijectiveHilbert
+
+    # Test constructor with signed type
+    c = Compact(Int64, [3, 2, 4])
+    @test index_type(c) == UInt64
+
+    # Test decode with Int literal
+    X = zeros(Int, 3)
+    decode_hilbert_zero!(c, X, 5)
+    @test encode_hilbert_zero(c, X) == index_type(c)(5)
+    decode_hilbert!(c, X, 6)
+    @test all(x -> x >= 1, X)
+end

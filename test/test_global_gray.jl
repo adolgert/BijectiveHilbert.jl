@@ -203,5 +203,15 @@ end
             @test HilbertTestSuite.check_complete_set(fc, b, n)
         end
     end
-    end
-    
+end
+
+
+@testitem "GlobalGray decode accepts Int index" begin
+    using BijectiveHilbert
+    gg = GlobalGray(3, 4)
+    X = zeros(Int, 4)
+    decode_hilbert_zero!(gg, X, 5)
+    @test encode_hilbert_zero(gg, X) == index_type(gg)(5)
+    decode_hilbert!(gg, X, 6)
+    @test all(x -> x >= 1, X)
+end

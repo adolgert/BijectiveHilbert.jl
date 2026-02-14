@@ -103,8 +103,9 @@ end
 
 
 function Compact(T, m::AbstractVector{<:Integer})
+    U = unsigned(T)
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
-    Compact{T,B}(m)
+    Compact{U,B}(m)
 end
 
 
@@ -255,7 +256,7 @@ end
 
 Decode a Hilbert index h (0-based) to point X (0-based coordinates).
 """
-function decode_hilbert_zero!(c::Compact{T,B}, X::AbstractVector, h::T) where {T,B}
+function decode_hilbert_zero!(c::Compact{T,B}, X::AbstractVector, h::T) where {T<:Integer,B}
     (; mmax, total_bits, k_level, axes_level, pos_level) = c
 
     fill!(X, zero(eltype(X)))
@@ -298,4 +299,8 @@ function decode_hilbert_zero!(c::Compact{T,B}, X::AbstractVector, h::T) where {T
             e, d = embed_state(A, k, pos_new, e, d)
         end
     end
+end
+
+function decode_hilbert_zero!(c::Compact{T,B}, X::AbstractVector, h::Integer) where {T,B}
+    decode_hilbert_zero!(c, X, T(h))
 end

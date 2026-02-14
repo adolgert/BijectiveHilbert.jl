@@ -477,3 +477,14 @@ end
     @test X[2] == 3
     @test X[3] == 7
 end
+
+
+@testitem "SpaceGray decode accepts Int index" begin
+    using BijectiveHilbert
+    gg = SpaceGray(3, 4)
+    X = zeros(Int, 4)
+    decode_hilbert_zero!(gg, X, 5)
+    @test encode_hilbert_zero(gg, X) == index_type(gg)(5)
+    decode_hilbert!(gg, X, 6)
+    @test all(x -> x >= 1, X)
+end

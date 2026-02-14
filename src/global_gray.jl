@@ -161,7 +161,11 @@ Given a Hilbert index, `h`, computes an n-dimensional coordinate `X`. The type o
 the Hilbert index is large enought to contain the bits of all dimensions of the
 axis vector, `X`.
 """
-function decode_hilbert_zero!(g::GlobalGray{T}, X::AbstractVector, h::T) where {T}
+function decode_hilbert_zero!(g::GlobalGray{T}, X::AbstractVector, h::T) where {T<:Integer}
     outerleave_transpose!(X, h, g.b, g.n)
     transpose_to_axes!(X, g.b, g.n)
+end
+
+function decode_hilbert_zero!(g::GlobalGray{T}, X::AbstractVector, h::Integer) where {T}
+    decode_hilbert_zero!(g, X, T(h))
 end
