@@ -41,6 +41,7 @@ Included are several variations of the Hilbert curve. They are type-stable and t
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.6.1 | 2026-02-14 | Added sorting API and relaxed data type for users |
 | 0.6.0 | 2025-12-28 | Created continuous curve for unequal side lengths |
 | 0.5.0 | 2025-04-14 | Simple2D is 2x faster, added support for StaticArrays |
 | 0.4.0 | 2023-12-29 | Removed Compact from interface, comprehensive test suite |
