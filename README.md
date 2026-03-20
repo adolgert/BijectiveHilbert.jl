@@ -4,6 +4,7 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://adolgert.github.io/BijectiveHilbert.jl/dev)
 [![Build Status](https://github.com/adolgert/BijectiveHilbert.jl/workflows/CI/badge.svg)](https://github.com/adolgert/BijectiveHilbert.jl/actions)
 [![Coverage](https://codecov.io/github/adolgert/BijectiveHilbert.jl/graph/badge.svg?token=gfF08n6KKg)](https://codecov.io/github/adolgert/BijectiveHilbert.jl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19121766.svg)](https://doi.org/10.5281/zenodo.19121766)
 
 Five [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_curve) algorithms,
 implemented from original papers, with bug fixes. Type stable, tested
