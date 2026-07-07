@@ -49,5 +49,14 @@ For use in scientific computing, it may be more important to judge different Hil
 * The [`Simple2D`](@ref) algorithm doesn't need to know how large the axes may be before you use it, but it only works in 2D.
 * The [`GlobalGray`](@ref) algorithm is fast for an n-dimensional algorithm.
 * The [`FaceContinuous`](@ref) algorithm is slower and is included because it has a different shape and is historically important as the first non-recursive n-dimensional algorithm.
+* The [`Compact`](@ref) algorithm relaxes the equal-size constraint: it allows each axis to have a different number of bits while keeping the curve lattice-continuous, so that consecutive indices always decode to points that differ by one in a single axis.
 
 In general, algorithms that are written explicitly for 2D are faster than n-dimensional equivalents.
+
+## Choosing among a family of curves
+
+The [`Compact`](@ref) algorithm does more than support anisotropic grids: it exposes a whole family of curves over the same domain. Instead of committing to a single canonical construction, it builds each level from an arbitrary Gray code and an arbitrary gluing path, drawn from a catalog of validated choices, so a single domain gives rise to a large number of genuinely distinct space-filling curves. This is useful when no single ordering is preferred: an ensemble of curves can be averaged over, or a curve can be randomized to avoid systematic bias.
+
+`Compact` supersedes the pre-0.7 [`CompactHamilton`](@ref) engine, which is deprecated and will be removed in version 0.8.0. `Compact` sorts its axes by descending bit count (and uses a rotate-by-`d` affine state), while `CompactHamilton` sorts ascending and uses Hamilton & Rau-Chaplin's `d+1` convention, so the two do not use the same axis-order convention. For uniform (equal-size) axes the two agree, but for anisotropic axes their Hilbert indices generally differ, even though both are valid lattice-continuous curves. The construction is described in:
+
+Dolgert, Andrew (2026). Gluing the Seam of a Hilbert Curve. Carnegie Mellon University. Preprint. <https://doi.org/10.1184/R1/32104066.v1>

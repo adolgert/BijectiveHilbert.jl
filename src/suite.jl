@@ -120,4 +120,65 @@ function check_complete_set(gg::HilbertAlgorithm{H}, b, n) where {H}
     success
 end
 
+
+"""
+    check_complete_set(gg::HilbertAlgorithm, ms::Vector{Int})
+
+Anisotropic complete-set check. `ms` holds the number of bits per axis. Walks
+the whole anisotropic box `[0, 2^ms[1]) x ... x [0, 2^ms[n])` with an odometer,
+asserts that `encode_hilbert_zero` is a bijection onto `0:2^sum(ms)-1`, and that
+consecutive Hilbert indices decode to points that differ in exactly one axis by
+exactly 1.
+"""
+function check_complete_set(gg::HilbertAlgorithm{H}, ms::Vector{Int}) where {H}
+    n = length(ms)
+    A = axis_type(gg)
+    total_bits = sum(ms)
+    success = true
+
+    # Odometer over the anisotropic box; record each point by its Hilbert index.
+    seen = Dict{H, Vector{A}}()
+    p = zeros(A, n)
+    # Guard the upper-bound check against index-type overflow when total_bits
+    # equals the index-type width (then any representable h is in range).
+    for _ in 0:(1 << total_bits - 1)
+        h = encode_hilbert_zero(gg, p)
+        if h < zero(H) || (total_bits < 8 * sizeof(H) && h >= one(H) << total_bits)
+            success = false
+        end
+        seen[h] = copy(p)
+        for inc in 1:n
+            p[inc] += one(A)
+            if p[inc] == one(A) << ms[inc]
+                p[inc] = zero(A)
+            else
+                break
+            end
+        end
+    end
+
+    if length(seen) != 1 << total_bits
+        success = false
+    end
+
+    for ihidx in 0:(1 << total_bits - 2)  # compare with next, so stop one early.
+        hidx = H(ihidx)
+        (haskey(seen, hidx) && haskey(seen, hidx + one(H))) || (success = false; break)
+        differ = seen[hidx] .!= seen[hidx + one(H)]
+        if sum(differ) != 1
+            @show ihidx, seen[hidx], seen[hidx + one(H)]
+            success = false
+            break
+        end
+        a = seen[hidx][differ][1]
+        b = seen[hidx + one(H)][differ][1]
+        dx = (a > b) ? a - b : b - a
+        if A(dx) != one(A)
+            success = false
+            break
+        end
+    end
+    success
+end
+
 end

@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "BijectiveHilbert.jl"
-version: "0.6.2"
+version: "0.7.0"
 date-released: "2026-03-19"
 url: "https://github.com/adolgert/BijectiveHilbert.jl"
 repository-code: "https://github.com/adolgert/BijectiveHilbert.jl"

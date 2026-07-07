@@ -44,6 +44,21 @@ encoder = FaceContinuous(Int64, 3, 4)
 encoder = Compact(Int64, [3, 2, 4])
 ```
 
+## Families of Hilbert curves
+
+Beyond the single canonical curve shown above, [`Compact`](@ref) exposes a whole
+*family* of distinct curves over the same domain, while always keeping the curve
+lattice-continuous. You select a member with a catalog Gray code and a gluing path:
+```julia
+# a specific random-Gray-code curve with a catalogued gluing path
+encoder = Compact([4, 4, 4, 3]; gray=:random, gray_index=3, path=:catalog, path_index=7)
+```
+
+Why does a family matter? For a given domain there are many distinct Hilbert curves, each
+with slightly different spatial-locality behavior. Being able to pick many different curves
+over the same points lets you build ensembles: run an algorithm across several curves and
+average the results, or randomize the curve to avoid systematic bias from any single ordering.
+
 ## Encode and Decode
 
 Convert a point to a Hilbert index and back:

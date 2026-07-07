@@ -2,6 +2,9 @@ module BijectiveHilbert
 
 include("bitops.jl")
 include("gray_code.jl")
+include("curve_catalog_data.jl")
+include("curve_catalog.jl")
+include("hub_state.jl")
 include("hilbert_algorithm.jl")
 export index_type
 export encode_hilbert
@@ -47,6 +50,9 @@ export Simple2D
 
 include("facecontinuous.jl")
 export FaceContinuous
+
+include("compact_hamilton.jl")
+export CompactHamilton
 
 include("compact.jl")
 export Compact
