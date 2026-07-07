@@ -169,3 +169,110 @@ example3 = UInt16[1, 2, 3, 4, 5, 6]
 sut3 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example3, UInt64(137))
 trial3 = @benchmark sut3()
 println(trial3)
+
+
+println("Compact 6d encode")
+fc = Compact(UInt64, [8, 8, 8, 8, 8, 8])
+example1 = UInt8[1, 2, 3, 4, 5, 6]
+sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
+trial1 = @benchmark sut1()
+println(trial1)
+
+example3 = UInt16[1, 2, 3, 4, 5, 6]
+sut3 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example3)
+trial3 = @benchmark sut3()
+println(trial3)
+
+println("Compact 6d decode")
+fc = Compact(UInt64, [8, 8, 8, 8, 8, 8])
+example1 = UInt8[1, 2, 3, 4, 5, 6]
+sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
+trial1 = @benchmark sut1()
+println(trial1)
+
+example3 = UInt16[1, 2, 3, 4, 5, 6]
+sut3 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example3, UInt64(137))
+trial3 = @benchmark sut3()
+println(trial3)
+
+
+println("GluedSeam 6d encode (closed-form BRGC)")
+fc = GluedSeam(fill(8, 6))
+example1 = UInt8[1, 2, 3, 4, 5, 6]
+sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
+trial1 = @benchmark sut1()
+println(trial1)
+
+example3 = UInt16[1, 2, 3, 4, 5, 6]
+sut3 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example3)
+trial3 = @benchmark sut3()
+println(trial3)
+
+println("GluedSeam 6d decode (closed-form BRGC)")
+fc = GluedSeam(fill(8, 6))
+example1 = UInt8[1, 2, 3, 4, 5, 6]
+sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
+trial1 = @benchmark sut1()
+println(trial1)
+
+example3 = UInt16[1, 2, 3, 4, 5, 6]
+sut3 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example3, UInt64(137))
+trial3 = @benchmark sut3()
+println(trial3)
+
+
+println("GluedSeam 6d encode (table-driven, random Gray + hub path)")
+fc = GluedSeam(fill(8, 6); gray=:random, path=:hub)
+example1 = UInt8[1, 2, 3, 4, 5, 6]
+sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
+trial1 = @benchmark sut1()
+println(trial1)
+
+example3 = UInt16[1, 2, 3, 4, 5, 6]
+sut3 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example3)
+trial3 = @benchmark sut3()
+println(trial3)
+
+println("GluedSeam 6d decode (table-driven, random Gray + hub path)")
+fc = GluedSeam(fill(8, 6); gray=:random, path=:hub)
+example1 = UInt8[1, 2, 3, 4, 5, 6]
+sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
+trial1 = @benchmark sut1()
+println(trial1)
+
+example3 = UInt16[1, 2, 3, 4, 5, 6]
+sut3 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example3, UInt64(137))
+trial3 = @benchmark sut3()
+println(trial3)
+
+
+# Anisotropic head-to-head: Compact vs GluedSeam on axes of different sizes.
+# (Uniform-m indices match exactly; anisotropic indices differ because
+# GluedSeam sorts axes descending and Compact sorts ascending.)
+println("Compact anisotropic [10,5,7] encode")
+fc = Compact(UInt64, [10, 5, 7])
+example1 = UInt16[3, 2, 5]
+sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
+trial1 = @benchmark sut1()
+println(trial1)
+
+println("GluedSeam anisotropic [10,5,7] encode")
+fc = GluedSeam([10, 5, 7])
+example1 = UInt16[3, 2, 5]
+sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
+trial1 = @benchmark sut1()
+println(trial1)
+
+println("Compact anisotropic [10,5,7] decode")
+fc = Compact(UInt64, [10, 5, 7])
+example1 = UInt16[0, 0, 0]
+sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
+trial1 = @benchmark sut1()
+println(trial1)
+
+println("GluedSeam anisotropic [10,5,7] decode")
+fc = GluedSeam([10, 5, 7])
+example1 = UInt16[0, 0, 0]
+sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
+trial1 = @benchmark sut1()
+println(trial1)

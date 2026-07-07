@@ -12,6 +12,7 @@ SpaceGray
 GlobalGray
 FaceContinuous
 Compact
+GluedSeam
 ```
 
 ## Functions
