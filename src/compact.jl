@@ -1,197 +1,245 @@
-# Compact Hilbert curve for anisotropic grids (different resolution per axis)
-# Based on C implementation in test/hilbert_affine.c
+# Compact Hilbert curve for anisotropic grids (different resolution per axis),
+# built with the glued-seam construction.
+#
+# Port of the affine transducer from HilbertCurveCompact
+# (src/hilbert_affine.zig `encode`/`decode`, src/domain.zig domain construction),
+# following the paper "Gluing the Seam of a Hilbert Curve" (Andrew Dolgert, 2026,
+# https://doi.org/10.1184/R1/32104066.v1).
+#
+# Builds on the already-merged hub-state machinery in src/hub_state.jl and the
+# curve catalog in src/curve_catalog.jl. Axes are stable-sorted DESCENDING by
+# bit count, so the active axes at every level are a prefix and no per-level
+# state embedding is needed (contrast src/compact_hamilton.jl, which sorts
+# ascending and uses `embed_state`). The affine state uses the paper's
+# rotate-by-`d` convention (`glued_affine_apply`), NOT Hamilton's `d+1`
+# convention.
 
 """
-    sort_axes_by_priority(m::Vector{Int})
+    build_glued_tables_for_k(k, gray, path, gray_index, path_index)
 
-Sort axes by (m[j], j) ascending. Returns a permutation where axes with
-fewer bits come first, breaking ties by axis index.
+Resolve the [`CurveTables`](@ref) for a single level width `k`, or `nothing`
+when the closed-form BRGC gray + standard path applies at that width. Mirrors
+the per-k table resolution loop in HilbertCurveCompact's `domainCreate`
+(src/domain.zig): random Gray codes come from the catalog with
+`gray_index mod gray_count(k)` at widths `k >= 3`, catalogued child paths use
+`path_index mod path_count(k, gi)`, and everything else derives a hub-state path
+from the resolved Gray code.
 """
-function sort_axes_by_priority(m::AbstractVector{<:Integer})
-    n = length(m)
-    perm = sortperm(collect(zip(m, 1:n)))
-    return perm
+function build_glued_tables_for_k(k::Int, gray::Symbol, path::Symbol,
+                                  gray_index::Int, path_index::Int)::Union{Nothing,CurveTables}
+    nk = 1 << k
+    from_catalog = false
+    gi_eff = 0
+    local gray_seq::Vector{UInt64}
+
+    if gray == :random && k >= 3
+        gcount = gray_count(k)
+        if gcount > 0
+            gi_eff = mod(gray_index, gcount)
+            gray_seq = convert(Vector{UInt64}, gray_for(k, gi_eff))
+            from_catalog = true
+        end
+    end
+    if !from_catalog
+        gray_seq = UInt64[brgc_rotated_gray(w, k) for w in 0:(nk - 1)]
+    end
+
+    if path == :catalog
+        # No catalogued Gray code at this width -> closed-form BRGC collapse.
+        from_catalog || return nothing
+        pcount = path_count(k, gi_eff)
+        if pcount > 0
+            pi_eff = mod(path_index, pcount)
+            ce = convert(Vector{UInt64}, path_child_entry(k, gi_eff, pi_eff))
+            return build_from_child_entry(k, gray_seq, ce)
+        end
+        # No catalogued path at this width: derive one below ("make do").
+    end
+
+    return build_hub_state(k, gray_seq)
 end
 
 
 """
-    Compact{T,B}(m::AbstractVector{<:Integer})
-    Compact(T, m::AbstractVector{<:Integer})
-    Compact(m::AbstractVector{<:Integer})
+    Compact{T,B}(m::AbstractVector{<:Integer}; kwargs...)
+    Compact(T, m::AbstractVector{<:Integer}; kwargs...)
+    Compact(m::AbstractVector{<:Integer}; kwargs...)
 
-Compact Hilbert curve algorithm for anisotropic grids where each axis
-can have a different number of bits.  If you don't specify type parameters
-they are chosen for you depending on the size of `m`.
+Glued-seam Hilbert curve for anisotropic grids where each axis can have a
+different number of bits. Always produces a lattice-continuous Hilbert curve
+(consecutive indices decode to points that differ in one axis by one). If you
+don't specify the type parameters they are chosen for you from the size of `m`.
 
 # Type Parameters
-- `T` - Hilbert index type (e.g., UInt64, UInt128)
-- `B` - Coordinate type (e.g., UInt32)
+- `T` - Hilbert index type (e.g., `UInt64`, `UInt128`)
+- `B` - Coordinate type (e.g., `UInt32`)
 
 # Arguments
-- `m` - Vector of bit counts, one per axis
+- `m` - Vector of bit counts, one per axis (axis `i` spans `[0, 2^m[i])`).
+
+# Keyword arguments
+Select which curve family is used. Indices are 0-based catalog ids.
+- `gray::Symbol = :brgc` - Gray-code family, `:brgc` or `:random`.
+- `path::Symbol` - child-path family, `:standard`, `:hub`, or `:catalog`.
+  Defaults to `:standard` when `gray == :brgc`, otherwise `:hub`.
+- `gray_index::Integer = 0` - which catalog Gray code (only for `gray = :random`).
+- `path_index::Integer = 0` - which catalog child path (only for `path = :catalog`).
+
+Only these `(gray, path)` combinations are legal:
+`(:brgc, :standard)`, `(:brgc, :hub)`, `(:random, :hub)`, `(:random, :catalog)`.
+
+The selection must exist at the widest level `k_max` (the number of axes active
+at the top level): for `:random`, `gray_index < gray_count(k_max)` is required
+(this also rejects `k_max > 10`, where the catalog is empty), and for
+`:catalog`, `path_index < path_count(k_max, gray_index)`. At smaller level
+widths `k`, `gray_index mod gray_count(k)` and `path_index mod path_count(k)`
+are used, and where the catalog has no entry (`k <= 2`) the curve collapses to
+the closed-form BRGC curve.
 
 # Example
 ```julia
-c = Compact{UInt64, UInt32}([3, 2, 4])  # Dimension [2^3, 2^2, 2^4]
-h = encode_hilbert_zero(c, UInt32[5, 2, 11])
+g = Compact([3, 2, 4])                                  # default BRGC curve
+h = encode_hilbert_zero(g, UInt8[5, 2, 11])
+# Four axes are active at the top level (k_max = 4), so gray_index may be 0-9
+# and path_index 0-9. A three-axis domain (k_max = 3) has only gray_index = 0.
+g2 = Compact([4, 3, 2, 2]; gray=:random, path=:catalog, gray_index=2, path_index=7)
 ```
 
-This code starts with the tech report and paper by Chris Hamilton. That paper
-and subsequent versions
-make a Hilbert curve for unequal side lengths without a guarantee that consecutive
-points are adjacent. This code will always produce a lattice-continuous Hilbert
-curve.
+# Relationship to [`CompactHamilton`](@ref)
+`Compact` is the recommended anisotropic, lattice-continuous algorithm, and it
+adds a choice of curve family (`gray`/`path`) that the legacy
+[`CompactHamilton`](@ref) engine does not offer. `Compact` sorts axes by
+descending bit count and uses the paper's rotate-by-`d` affine state, whereas
+`CompactHamilton` uses Hamilton & Rau-Chaplin's ascending-sort, `d+1`
+convention. The two produce identical indices on uniform grids, but their
+anisotropic Hilbert indices generally differ; both are valid lattice-continuous
+curves.
 
-Hamilton, Chris. "Compact hilbert indices." Dalhousie University, Faculty of Computer Science, Technical Report CS-2006-07 (2006).
+This code ports the affine transducer from the HilbertCurveCompact library and
+follows:
+
+ - Dolgert, Andrew (2026). Gluing the Seam of a Hilbert Curve. Carnegie Mellon
+   University. Preprint. https://doi.org/10.1184/R1/32104066.v1
 """
 struct Compact{T, B} <: HilbertAlgorithm{T}
-    m::Vector{Int}           # exponents, one per axis
-    mmax::Int                # max(m), number of levels
-    total_bits::Int          # sum(m), bits in Hilbert index
-    k_level::Vector{Int}     # k_level[s] = count of active axes at level s
-    axes_level::Matrix{Int}  # axes_level[j, s] = axis at position j, level s
-    pos_level::Matrix{Int}   # pos_level[ax, s] = position of axis ax at level s (-1 if inactive)
+    n::Int                                          # number of axes
+    m_bits::Vector{Int}                             # bit counts, sorted non-increasing
+    axis_perm::Vector{Int}                          # sorted position -> original 1-based axis
+    k_levels::Vector{Int}                           # k_levels[s] = active axes at level s
+    m_sum::Int                                      # sum(m), bits in Hilbert index
+    max_m::Int                                      # max(m), number of levels
+    tables::Vector{Union{Nothing, CurveTables}}     # tables[k]; nothing = closed-form BRGC
+    gray::Symbol
+    path::Symbol
+    gray_index::Int
+    path_index::Int
 end
 
 
-function Compact{T,B}(m::AbstractVector{<:Integer}) where {T<:Unsigned, B<:Unsigned}
-    # Validate inputs
+function Compact{T, B}(m::AbstractVector{<:Integer};
+                       gray::Symbol = :brgc,
+                       path::Symbol = (gray == :brgc ? :standard : :hub),
+                       gray_index::Integer = 0,
+                       path_index::Integer = 0) where {T <: Unsigned, B <: Unsigned}
     n = length(m)
     n > 0 || throw(ArgumentError("m must be non-empty"))
     all(x -> x >= 0, m) || throw(ArgumentError("m values must be non-negative"))
-    mmax = maximum(m)
-    total_bits = sum(m)
-    total_bits <= 8 * sizeof(T) || throw(ArgumentError("total_bits exceeds index type capacity"))
-    mmax <= 8 * sizeof(B) || throw(ArgumentError("max(m) exceeds coordinate type capacity"))
+    n <= 64 || throw(ArgumentError("length(m) must be <= 64"))
 
-    # Handle edge case of all zeros
-    if mmax == 0
-        return Compact{T,B}(copy(m), 0, 0, Int[], zeros(Int, n, 0), zeros(Int, n, 0))
+    m_sum = sum(Int, m)
+    max_m = maximum(Int, m)
+    m_sum <= 8 * sizeof(T) || throw(ArgumentError("sum(m) exceeds index type capacity"))
+    max_m <= 8 * sizeof(B) || throw(ArgumentError("max(m) exceeds coordinate type capacity"))
+
+    # Legal (gray, path) combinations (mirrors domain.zig's legality rules).
+    legal = (gray === :brgc && path === :standard) ||
+            (gray === :brgc && path === :hub) ||
+            (gray === :random && path === :hub) ||
+            (gray === :random && path === :catalog)
+    legal || throw(ArgumentError("illegal (gray, path) combination ($gray, $path)"))
+    gray_index >= 0 || throw(ArgumentError("gray_index must be >= 0"))
+    path_index >= 0 || throw(ArgumentError("path_index must be >= 0"))
+
+    # Degenerate all-zero domain: single point, zero-width index.
+    if max_m == 0
+        return Compact{T, B}(n, fill(0, n), collect(1:n), Int[], 0, 0,
+                             Union{Nothing, CurveTables}[], gray, path,
+                             Int(gray_index), Int(path_index))
     end
 
-    # Build active axes structure
-    order = sort_axes_by_priority(m)
+    # Stable-sort axes descending by bit count (ties keep original axis order),
+    # so active axes at every level are a prefix (no state embedding needed).
+    order = collect(1:n)
+    sort!(order; by = i -> -Int(m[i]), alg = Base.Sort.MergeSort)
+    m_bits = Int[Int(m[order[j]]) for j in 1:n]
+    axis_perm = order
 
-    k_level = zeros(Int, mmax)
-    axes_level = zeros(Int, n, mmax)
-    pos_level = fill(-1, n, mmax)
+    # k_levels[s] = number of axes with m >= s (a prefix count since sorted).
+    k_levels = Vector{Int}(undef, max_m)
+    for s in 1:max_m
+        cnt = 0
+        for j in 1:n
+            m_bits[j] >= s && (cnt += 1)
+        end
+        k_levels[s] = cnt
+    end
 
-    for s in 1:mmax
-        k = 0
-        for i in 1:n
-            ax = order[i]
-            if m[ax] >= s
-                k += 1
-                axes_level[k, s] = ax
+    k_max = k_levels[1]
+    needs_tables = !(gray === :brgc && path === :standard)
+
+    tables = Vector{Union{Nothing, CurveTables}}(nothing, k_max)
+    if needs_tables
+        # The selection must exist at the widest level width k_max; smaller
+        # widths use index-mod-count fallback (handled per k below).
+        if gray === :random && k_max >= 3
+            gray_index < gray_count(k_max) ||
+                throw(ArgumentError("gray_index $gray_index out of range at k_max=$k_max " *
+                                    "(gray_count=$(gray_count(k_max)))"))
+            if path === :catalog
+                path_index < path_count(k_max, gray_index) ||
+                    throw(ArgumentError("path_index $path_index out of range at k_max=$k_max, " *
+                                        "gray_index=$gray_index (path_count=$(path_count(k_max, gray_index)))"))
             end
         end
-        k_level[s] = k
-        for j in 1:k
-            pos_level[axes_level[j, s], s] = j
+
+        done = falses(k_max)
+        for s in 1:max_m
+            k = k_levels[s]
+            (k == 0 || done[k]) && continue
+            done[k] = true
+            tables[k] = build_glued_tables_for_k(k, gray, path, Int(gray_index), Int(path_index))
         end
     end
 
-    Compact{T,B}(copy(m), mmax, total_bits, k_level, axes_level, pos_level)
+    Compact{T, B}(n, m_bits, axis_perm, k_levels, m_sum, max_m, tables,
+                  gray, path, Int(gray_index), Int(path_index))
 end
 
 
-function Compact(m::AbstractVector{<:Integer})
+function Compact(m::AbstractVector{<:Integer}; kwargs...)
     T = large_enough_unsigned(sum(m))       # index type from total bits
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
-    Compact{T,B}(m)
+    Compact{T, B}(m; kwargs...)
 end
 
 
-function Compact(T, m::AbstractVector{<:Integer})
+function Compact(T, m::AbstractVector{<:Integer}; kwargs...)
     U = unsigned(T)
     B = large_enough_unsigned(maximum(m))   # coord type from max bits per axis
-    Compact{U,B}(m)
+    Compact{U, B}(m; kwargs...)
 end
 
 
-axis_type(::Compact{T,B}) where {T,B} = B
+axis_type(::Compact{T, B}) where {T, B} = B
 
 
-# ============================================================================
-# Helper functions
-# ============================================================================
-
-"""
-    child_entry(w, k)
-
-Hamilton entry vertex: the entry point of sub-hypercube w.
-For w == 0, returns 0. Otherwise returns brgc((w - 1) & ~1) masked to k bits.
-"""
-function child_entry(w::B, k::Int)::B where {B<:Unsigned}
-    w == zero(B) && return zero(B)
-    brgc((w - one(B)) & ~one(B)) & fbvn1s(B, k)
-end
-
-
-"""
-    child_dir(w, k)
-
-Hamilton direction: the axis along which we exit sub-hypercube w.
-Uses trailing_ones to compute efficiently.
-"""
-function child_dir(w::Integer, k::Int)::Int
-    w == 0 && return 0
-    isodd(w) ? trailing_ones(w) % k : trailing_ones(w - 1) % k
-end
-
-
-"""
-    affine_apply(x, e, d, k)
-
-Apply affine transformation S_{e,δ}(x) = rotl(x, d+1, k) ⊻ e
-where δ = d + 1. Used in decode path.
-"""
-function affine_apply(x::B, e::B, d::Int, k::Int)::B where {B<:Unsigned}
-    (rotateleft(x, (d + 1) % k, k) ⊻ e) & fbvn1s(B, k)
-end
-
-
-"""
-    affine_apply_inv(y, e, d, k)
-
-Inverse affine transformation S^{-1}(y) = rotr(y ⊻ e, d+1, k).
-Used in encode path.
-"""
-function affine_apply_inv(y::B, e::B, d::Int, k::Int)::B where {B<:Unsigned}
-    rotateright(y ⊻ e, (d + 1) % k, k) & fbvn1s(B, k)
-end
-
-
-"""
-    embed_state(A_old, k_old, pos_new, e_old, d_old)
-
-Map state (e, d) when transitioning from k_old active axes to more axes.
-Scatters bits of e from old positions to new positions and maps the
-direction axis through position lookup.
-
-# Arguments
-- `A_old` - view of axes at old level: axes_level[1:k_old, s]
-- `k_old` - number of active axes at old level
-- `pos_new` - view of positions at new level: pos_level[:, s-1]
-- `e_old` - entry point at old level (k_old bits)
-- `d_old` - direction at old level (0-based)
-
-# Returns
-- `(e_new, d_new)` - state mapped to new level
-"""
-function embed_state(A_old::AbstractVector{Int}, k_old::Int, pos_new::AbstractVector{Int},
-                     e_old::B, d_old::Int)::Tuple{B,Int} where {B<:Unsigned}
-    e_new = zero(B)
-    for j in 1:k_old
-        if (e_old >> (j - 1)) & one(B) != zero(B)
-            new_pos = pos_new[A_old[j]]
-            e_new |= one(B) << (new_pos - 1)
-        end
+function Base.show(io::IO, g::Compact{T, B}) where {T, B}
+    m = zeros(Int, g.n)
+    for j in 1:g.n
+        m[g.axis_perm[j]] = g.m_bits[j]
     end
-    # d is 0-based, so A_old[d_old + 1] gets the axis, then look up its new position
-    dir_axis = A_old[d_old + 1]
-    d_new = pos_new[dir_axis] - 1  # convert back to 0-based
-    (e_new, d_new)
+    print(io, "Compact{$T,$B}(", m, "; gray=:", g.gray, ", path=:", g.path,
+          ", gray_index=", g.gray_index, ", path_index=", g.path_index, ")")
 end
 
 
@@ -200,107 +248,106 @@ end
 # ============================================================================
 
 """
-    encode_hilbert_zero(c::Compact, X)
+    encode_hilbert_zero(g::Compact, X)
 
-Encode a point X (0-based coordinates) to a Hilbert index (0-based).
+Encode a point `X` (0-based coordinates) to a Hilbert index (0-based). Port of
+`hilbert_affine.encode` (the computed, non-table path).
 """
-function encode_hilbert_zero(c::Compact{T,B}, X::AbstractVector)::T where {T,B}
-    (; mmax, k_level, axes_level, pos_level) = c
-    mmax == 0 && return zero(T)
+function encode_hilbert_zero(g::Compact{T, B}, X::AbstractVector)::T where {T, B}
+    max_m = g.max_m
+    max_m == 0 && return zero(T)
 
-    e = zero(B)
-    d = 0
+    axis_perm = g.axis_perm
+    k_levels = g.k_levels
+    tables = g.tables
+
+    st_e = UInt64(0)
+    st_d = 0
     h = zero(T)
+    for s in max_m:-1:1
+        k = k_levels[s]
+        tab = tables[k]
 
-    for s in mmax:-1:1
-        k = k_level[s]
-        A = @view axes_level[1:k, s]
-        mask = fbvn1s(B, k)
-
-        e &= mask
-        d = d % k
-
-        # Gather bits from coordinates at level s
-        plane = zero(B)
+        # Gather bit-plane s: active axes at level s are the prefix j = 1:k
+        # (axes are sorted descending by bit count), so plane bit (j-1) is
+        # bit (s-1) of X[axis_perm[j]].
+        plane = UInt64(0)
         for j in 1:k
-            ax = A[j]
-            plane |= ((B(X[ax]) >> (s - 1)) & one(B)) << (j - 1)
+            plane |= ((UInt64(X[axis_perm[j]]) >> (s - 1)) & one(UInt64)) << (j - 1)
         end
-        plane &= mask
 
-        # Inverse affine transform, then Gray decode
-        pre = affine_apply_inv(plane, e, d, k)
-        w = brgc_inv(pre) & mask
+        pre = glued_affine_apply_inv(plane, st_e, st_d, k)
+        w = tab === nothing ? brgc_rotated_rank(pre, k) : tab.gray_rank[pre + 1]
 
-        # Pack digit MSB-first
         h = (h << k) | T(w)
+        s == 1 && break
 
-        # Update state
-        entry = child_entry(w, k) & mask
-        e = (e ⊻ rotateleft(entry, (d + 1) % k, k)) & mask
-        d = (d + child_dir(w, k) + 1) % k
-
-        # Embed state if k increases at next level
-        if s > 1 && k_level[s - 1] > k
-            pos_new = @view pos_level[:, s - 1]
-            e, d = embed_state(A, k, pos_new, e, d)
+        if tab === nothing
+            entry = glued_child_entry(w, k)
+            dir = Int(glued_child_dir(w, k))
+        else
+            entry = tab.child_entry[w + 1]
+            dir = Int(tab.child_dir[w + 1])
         end
+        st_e = glued_affine_apply(entry, st_e, st_d, k)
+        st_d = (st_d + dir) % k
     end
-
     h
 end
 
 
 """
-    decode_hilbert_zero!(c::Compact, X, h)
+    decode_hilbert_zero!(g::Compact, X, h)
 
-Decode a Hilbert index h (0-based) to point X (0-based coordinates).
+Decode a Hilbert index `h` (0-based) into point `X` (0-based coordinates). Port
+of `hilbert_affine.decode` (the computed, non-table path).
 """
-function decode_hilbert_zero!(c::Compact{T,B}, X::AbstractVector, h::T) where {T<:Integer,B}
-    (; mmax, total_bits, k_level, axes_level, pos_level) = c
-
+function decode_hilbert_zero!(g::Compact{T, B}, X::AbstractVector, h::T) where {T <: Integer, B}
     fill!(X, zero(eltype(X)))
-    mmax == 0 && return
+    max_m = g.max_m
+    max_m == 0 && return
 
-    bit_pos = total_bits
-    e = zero(B)
-    d = 0
+    axis_perm = g.axis_perm
+    k_levels = g.k_levels
+    tables = g.tables
 
-    for s in mmax:-1:1
-        k = k_level[s]
-        A = @view axes_level[1:k, s]
-        mask = fbvn1s(B, k)
+    st_e = UInt64(0)
+    st_d = 0
+    bit_pos = g.m_sum
+    for s in max_m:-1:1
+        k = k_levels[s]
+        tab = tables[k]
 
-        e &= mask
-        d = d % k
-
-        # Extract k-bit digit
         bit_pos -= k
-        w = B((h >> bit_pos) & T(mask))
+        maskT = (one(T) << k) - one(T)
+        w = UInt64((h >> bit_pos) & maskT)
 
-        # Gray encode, then affine transform
-        g = brgc(w) & mask
-        plane = affine_apply(g, e, d, k)
+        gcode = tab === nothing ? brgc_rotated_gray(w, k) : tab.gray[w + 1]
+        plane = glued_affine_apply(gcode, st_e, st_d, k)
 
-        # Scatter bits to coordinates at level s
+        # Scatter bit-plane s: active axes at level s are the prefix j = 1:k
+        # (zero-bit axes are never active, so they stay 0 from fill!).
         for j in 1:k
-            ax = A[j]
-            X[ax] |= eltype(X)(((plane >> (j - 1)) & one(B)) << (s - 1))
+            ax = axis_perm[j]
+            bitval = (plane >> (j - 1)) & one(UInt64)
+            X[ax] |= eltype(X)(bitval << (s - 1))
         end
+        s == 1 && break
 
-        # Update state (same as encode)
-        entry = child_entry(w, k) & mask
-        e = (e ⊻ rotateleft(entry, (d + 1) % k, k)) & mask
-        d = (d + child_dir(w, k) + 1) % k
-
-        # Embed state if k increases at next level
-        if s > 1 && k_level[s - 1] > k
-            pos_new = @view pos_level[:, s - 1]
-            e, d = embed_state(A, k, pos_new, e, d)
+        if tab === nothing
+            entry = glued_child_entry(w, k)
+            dir = Int(glued_child_dir(w, k))
+        else
+            entry = tab.child_entry[w + 1]
+            dir = Int(tab.child_dir[w + 1])
         end
+        st_e = glued_affine_apply(entry, st_e, st_d, k)
+        st_d = (st_d + dir) % k
     end
+    return
 end
 
-function decode_hilbert_zero!(c::Compact{T,B}, X::AbstractVector, h::Integer) where {T,B}
-    decode_hilbert_zero!(c, X, T(h))
+
+function decode_hilbert_zero!(g::Compact{T, B}, X::AbstractVector, h::Integer) where {T, B}
+    decode_hilbert_zero!(g, X, T(h))
 end

@@ -1,4 +1,4 @@
-# Test Compact Julia implementation against C reference implementation
+# Test CompactHamilton Julia implementation against C reference implementation
 #
 # This test is not part of the normal test suite because it requires:
 # 1. A C compiler (gcc or clang)
@@ -9,7 +9,7 @@
 
 using Test
 using Random
-using BijectiveHilbert: Compact, encode_hilbert_zero, decode_hilbert_zero!
+using BijectiveHilbert: CompactHamilton, encode_hilbert_zero, decode_hilbert_zero!
 
 const TEST_DIR = @__DIR__
 const C_SOURCE = joinpath(TEST_DIR, "hilbert_affine.c")
@@ -83,7 +83,7 @@ function test_encode_match(m::Vector{Int}, point::Vector{UInt32})
     m32 = Int32.(m)
 
     # Julia encode
-    c = Compact{UInt64, UInt32}(m)
+    c = CompactHamilton{UInt64, UInt32}(m)
     h_julia = encode_hilbert_zero(c, point)
 
     # C encode
@@ -103,7 +103,7 @@ function test_decode_match(m::Vector{Int}, h::UInt64)
     n = length(m)
 
     # Julia decode
-    c = Compact{UInt64, UInt32}(m)
+    c = CompactHamilton{UInt64, UInt32}(m)
     point_julia = zeros(UInt32, n)
     decode_hilbert_zero!(c, point_julia, h)
 
@@ -125,7 +125,7 @@ function test_roundtrip_match(m::Vector{Int}, point::Vector{UInt32})
     n = length(m)
 
     # Julia roundtrip
-    c = Compact{UInt64, UInt32}(m)
+    c = CompactHamilton{UInt64, UInt32}(m)
     h_julia = encode_hilbert_zero(c, point)
     rt_julia = zeros(UInt32, n)
     decode_hilbert_zero!(c, rt_julia, h_julia)
@@ -164,7 +164,7 @@ function exhaustive_test(m::Vector{Int})
         return true
     end
 
-    c = Compact{UInt64, UInt32}(m)
+    c = CompactHamilton{UInt64, UInt32}(m)
     m32 = Int32.(m)
 
     # Test all possible points
@@ -207,13 +207,13 @@ end
 
 function run_tests()
     println("="^60)
-    println("Testing Julia Compact vs C hilbert_affine")
+    println("Testing Julia CompactHamilton vs C hilbert_affine")
     println("="^60)
 
     # Compile C library
     compile_c_library()
 
-    @testset "Compact vs C" begin
+    @testset "CompactHamilton vs C" begin
         @testset "Uniform dimensions" begin
             for b in 1:4, n in 2:4
                 m = fill(b, n)
@@ -249,7 +249,7 @@ function run_tests()
             # One axis with 0 bits (degenerate but valid)
             # Note: This tests that axis with 0 bits is handled correctly
             m = [2, 0, 3]
-            c = Compact{UInt64, UInt32}(m)
+            c = CompactHamilton{UInt64, UInt32}(m)
             m32 = Int32.(m)
             point = UInt32[2, 0, 5]
             h_julia = encode_hilbert_zero(c, point)
@@ -269,7 +269,7 @@ function run_tests()
             ]
 
             for m in test_configs
-                c = Compact{UInt64, UInt32}(m)
+                c = CompactHamilton{UInt64, UInt32}(m)
                 m32 = Int32.(m)
                 n = length(m)
 
@@ -284,7 +284,7 @@ function run_tests()
         @testset "UInt128 index (large grids)" begin
             # Test cases that need more than 64 bits
             m = [20, 20, 20, 20]  # 80 bits total
-            c = Compact{UInt128, UInt32}(m)
+            c = CompactHamilton{UInt128, UInt32}(m)
             m32 = Int32.(m)
 
             Random.seed!(123)

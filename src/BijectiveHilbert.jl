@@ -51,11 +51,11 @@ export Simple2D
 include("facecontinuous.jl")
 export FaceContinuous
 
+include("compact_hamilton.jl")
+export CompactHamilton
+
 include("compact.jl")
 export Compact
-
-include("glued_seam.jl")
-export GluedSeam
 
 include("suite.jl")
 

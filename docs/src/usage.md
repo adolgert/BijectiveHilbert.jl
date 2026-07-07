@@ -46,18 +46,12 @@ encoder = Compact(Int64, [3, 2, 4])
 
 ## Families of Hilbert curves
 
-[`GluedSeam`](@ref) also handles axes of different sizes and, like [`Compact`](@ref),
-always produces a lattice-continuous curve. The simplest case looks just like the others:
-```julia
-# 3D space: axis 1 is 0-15 (4 bits), axis 2 is 0-7 (3 bits), axis 3 is 0-3 (2 bits)
-encoder = GluedSeam([4, 3, 2])
-```
-
-What sets it apart is that it exposes a whole *family* of distinct curves over the same
-domain. You select a member with a catalog Gray code and a gluing path:
+Beyond the single canonical curve shown above, [`Compact`](@ref) exposes a whole
+*family* of distinct curves over the same domain, while always keeping the curve
+lattice-continuous. You select a member with a catalog Gray code and a gluing path:
 ```julia
 # a specific random-Gray-code curve with a catalogued gluing path
-encoder = GluedSeam([4, 4, 4, 3]; gray=:random, gray_index=3, path=:catalog, path_index=7)
+encoder = Compact([4, 4, 4, 3]; gray=:random, gray_index=3, path=:catalog, path_index=7)
 ```
 
 Why does a family matter? For a given domain there are many distinct Hilbert curves, each

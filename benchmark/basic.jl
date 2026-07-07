@@ -171,8 +171,8 @@ trial3 = @benchmark sut3()
 println(trial3)
 
 
-println("Compact 6d encode")
-fc = Compact(UInt64, [8, 8, 8, 8, 8, 8])
+println("CompactHamilton 6d encode")
+fc = CompactHamilton(UInt64, [8, 8, 8, 8, 8, 8])
 example1 = UInt8[1, 2, 3, 4, 5, 6]
 sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
 trial1 = @benchmark sut1()
@@ -183,8 +183,8 @@ sut3 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example3)
 trial3 = @benchmark sut3()
 println(trial3)
 
-println("Compact 6d decode")
-fc = Compact(UInt64, [8, 8, 8, 8, 8, 8])
+println("CompactHamilton 6d decode")
+fc = CompactHamilton(UInt64, [8, 8, 8, 8, 8, 8])
 example1 = UInt8[1, 2, 3, 4, 5, 6]
 sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
 trial1 = @benchmark sut1()
@@ -196,8 +196,8 @@ trial3 = @benchmark sut3()
 println(trial3)
 
 
-println("GluedSeam 6d encode (closed-form BRGC)")
-fc = GluedSeam(fill(8, 6))
+println("Compact 6d encode (closed-form BRGC)")
+fc = Compact(fill(8, 6))
 example1 = UInt8[1, 2, 3, 4, 5, 6]
 sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
 trial1 = @benchmark sut1()
@@ -208,8 +208,8 @@ sut3 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example3)
 trial3 = @benchmark sut3()
 println(trial3)
 
-println("GluedSeam 6d decode (closed-form BRGC)")
-fc = GluedSeam(fill(8, 6))
+println("Compact 6d decode (closed-form BRGC)")
+fc = Compact(fill(8, 6))
 example1 = UInt8[1, 2, 3, 4, 5, 6]
 sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
 trial1 = @benchmark sut1()
@@ -221,8 +221,8 @@ trial3 = @benchmark sut3()
 println(trial3)
 
 
-println("GluedSeam 6d encode (table-driven, random Gray + hub path)")
-fc = GluedSeam(fill(8, 6); gray=:random, path=:hub)
+println("Compact 6d encode (table-driven, random Gray + hub path)")
+fc = Compact(fill(8, 6); gray=:random, path=:hub)
 example1 = UInt8[1, 2, 3, 4, 5, 6]
 sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
 trial1 = @benchmark sut1()
@@ -233,8 +233,8 @@ sut3 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example3)
 trial3 = @benchmark sut3()
 println(trial3)
 
-println("GluedSeam 6d decode (table-driven, random Gray + hub path)")
-fc = GluedSeam(fill(8, 6); gray=:random, path=:hub)
+println("Compact 6d decode (table-driven, random Gray + hub path)")
+fc = Compact(fill(8, 6); gray=:random, path=:hub)
 example1 = UInt8[1, 2, 3, 4, 5, 6]
 sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
 trial1 = @benchmark sut1()
@@ -246,32 +246,32 @@ trial3 = @benchmark sut3()
 println(trial3)
 
 
-# Anisotropic head-to-head: Compact vs GluedSeam on axes of different sizes.
+# Anisotropic head-to-head: CompactHamilton vs Compact on axes of different sizes.
 # (Uniform-m indices match exactly; anisotropic indices differ because
-# GluedSeam sorts axes descending and Compact sorts ascending.)
+# Compact sorts axes descending and CompactHamilton sorts ascending.)
+println("CompactHamilton anisotropic [10,5,7] encode")
+fc = CompactHamilton(UInt64, [10, 5, 7])
+example1 = UInt16[3, 2, 5]
+sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
+trial1 = @benchmark sut1()
+println(trial1)
+
 println("Compact anisotropic [10,5,7] encode")
-fc = Compact(UInt64, [10, 5, 7])
+fc = Compact([10, 5, 7])
 example1 = UInt16[3, 2, 5]
 sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
 trial1 = @benchmark sut1()
 println(trial1)
 
-println("GluedSeam anisotropic [10,5,7] encode")
-fc = GluedSeam([10, 5, 7])
-example1 = UInt16[3, 2, 5]
-sut1 = () -> BijectiveHilbert.encode_hilbert_zero(fc, example1)
-trial1 = @benchmark sut1()
-println(trial1)
-
-println("Compact anisotropic [10,5,7] decode")
-fc = Compact(UInt64, [10, 5, 7])
+println("CompactHamilton anisotropic [10,5,7] decode")
+fc = CompactHamilton(UInt64, [10, 5, 7])
 example1 = UInt16[0, 0, 0]
 sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
 trial1 = @benchmark sut1()
 println(trial1)
 
-println("GluedSeam anisotropic [10,5,7] decode")
-fc = GluedSeam([10, 5, 7])
+println("Compact anisotropic [10,5,7] decode")
+fc = Compact([10, 5, 7])
 example1 = UInt16[0, 0, 0]
 sut1 = () -> BijectiveHilbert.decode_hilbert_zero!(fc, example1, UInt64(137))
 trial1 = @benchmark sut1()

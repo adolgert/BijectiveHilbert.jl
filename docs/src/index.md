@@ -50,6 +50,9 @@ This function, called a [Hilbert curve](https://en.wikipedia.org/wiki/Hilbert_cu
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.7.0 | 2026-07-07 | Compact replaced by the glued-seam algorithm (curve families, identical uniform-grid indices, different anisotropic curve); old algorithm kept as deprecated CompactHamilton |
+| 0.6.2 | 2026-03-19 | Added CITATION.cff and CITATION.bib |
+| 0.6.1 | 2026-02-14 | Added sorting API and relaxed data type for users |
 | 0.6.0 | 2025-12-28 | Created continuous curve for unequal side lengths |
 | 0.5.0 | 2025-04-14 | Simple2D is 2x faster, added support for StaticArrays |
 | 0.4.0 | 2023-12-29 | Removed Compact from interface, comprehensive test suite |

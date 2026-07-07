@@ -1,8 +1,8 @@
-# Manual live fuzz of the GluedSeam Hilbert curve against the HilbertCurveCompact
+# Manual live fuzz of the Compact Hilbert curve against the HilbertCurveCompact
 # Zig reference engine. This is NOT part of the CI test suite (it needs a `zig`
 # compiler and builds the reference shared library on the fly); it plays the same
-# role as test/against_c.jl does for Compact. The committed, ccall-free CI check
-# is test/test_glued_seam_vectors.jl, which validates against vectors emitted by
+# role as test/against_c.jl does for CompactHamilton. The committed, ccall-free CI check
+# is test/test_compact_vectors.jl, which validates against vectors emitted by
 # gen/generate_reference_vectors.jl.
 #
 # Run manually with:
@@ -16,7 +16,7 @@
 
 using Random
 using Libdl
-using BijectiveHilbert: GluedSeam, encode_hilbert_zero, decode_hilbert_zero!,
+using BijectiveHilbert: Compact, encode_hilbert_zero, decode_hilbert_zero!,
                         index_type, axis_type, gray_count, path_count
 
 const DEFAULT_ZIG_REPO = "/Users/adolgert/dev/HilbertCurveCompact"
@@ -158,7 +158,7 @@ function run_fuzz()
         k_max = count(>(0), m)
         gray, path, gi, pi = random_selection(rng, k_max)
 
-        g = GluedSeam(m; gray = gray, path = path, gray_index = gi, path_index = pi)
+        g = Compact(m; gray = gray, path = path, gray_index = gi, path_index = pi)
         T = index_type(g); B = axis_type(g)
         st, dom = zig_domain_create(abi, UInt32.(m), gray, path, gi, pi)
         if st != 0
@@ -204,7 +204,7 @@ function run_fuzz()
     end
 
     println("\n" * "="^60)
-    println("GluedSeam vs Zig live fuzz")
+    println("Compact vs Zig live fuzz")
     println("  configs requested:   $NUM_CONFIGS")
     println("  configs skipped:     $skipped (create rejected / out of range)")
     println("  points compared:     $total_points")
@@ -212,7 +212,7 @@ function run_fuzz()
     println("  decode mismatches:   $decode_fails")
     println("="^60)
     if mismatches == 0 && decode_fails == 0
-        println("PASS: Julia GluedSeam is bit-identical to the Zig reference.")
+        println("PASS: Julia Compact is bit-identical to the Zig reference.")
     else
         println("FAIL: divergence detected -- isolate the smallest failing case above.")
     end

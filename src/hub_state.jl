@@ -12,7 +12,7 @@
 # child_entry[w] = gray[w] xor chi[w].
 #
 # CONVENTION: this family rotates by `d` (the paper's convention), NOT `d+1`
-# (Hamilton's). Do not confuse these with src/compact.jl's Hamilton-convention
+# (Hamilton's). Do not confuse these with src/compact_hamilton.jl's Hamilton-convention
 # `affine_apply`/`child_entry`/`child_dir`.
 
 # ---------------------------------------------------------------------------
@@ -129,7 +129,7 @@ end
 # ---------------------------------------------------------------------------
 # Affine state-machine primitives (k-bit, 0-based UInt64 values).
 #
-# NOTE: src/compact.jl defines `affine_apply`/`affine_apply_inv` with
+# NOTE: src/compact_hamilton.jl defines `affine_apply`/`affine_apply_inv` with
 # Hamilton's `d+1` convention. These hub-state versions use the paper's
 # rotate-by-`d` convention, so they carry the `glued_` prefix (like
 # `glued_child_entry`) to keep the two conventions from ever cross-dispatching.
